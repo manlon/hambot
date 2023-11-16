@@ -21,9 +21,10 @@ defmodule HambotWeb.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", HambotWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", HambotWeb do
+    pipe_through :api
+    get "/", ApiController, :index
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:hambot, :dev_routes) do
