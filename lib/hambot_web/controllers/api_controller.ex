@@ -41,9 +41,13 @@ defmodule HambotWeb.ApiController do
     render(conn, "message.json", %{urls: urls})
   end
 
+  def event(conn, %{"event" => e = %{"type" => "app_mention", "channel" => channel, "ts" => _ts}}) do
+    Hambot.send_message(channel, "ham")
+    render(conn, "message.json")
+  end
+
   def event(conn, params) do
     Logger.debug("unhandled event")
-    Logger.debug(inspect(params))
     render(conn, "unknown_event.json", params)
   end
 end
