@@ -24,6 +24,8 @@ defmodule HambotWeb.Router do
   scope "/api", HambotWeb do
     pipe_through :api
     get "/", ApiController, :index
+    post "/event", ApiController, :event
+    get "/event", ApiController, :event
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

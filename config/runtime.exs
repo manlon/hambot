@@ -115,3 +115,8 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+config :hambot, :slack,
+  client_secret: System.get_env("SLACK_CLIENT_SECRET"),
+  signing_secret: System.get_env("SLACK_SIGNING_SECRET"),
+  verification_token: System.get_env("SLACK_VERIFICATION_TOKEN")
