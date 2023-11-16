@@ -8,7 +8,7 @@ defmodule HambotWeb.ApiJSON do
     %{challenge: challenge}
   end
 
-  def render("message.json", %{urls: urls}) do
+  def render("message.json", _) do
     %{}
   end
 

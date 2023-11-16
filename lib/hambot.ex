@@ -27,7 +27,14 @@ defmodule Hambot do
     end)
   end
 
-  @archive_domains ["nytimes.com", "washingtonpost.com"]
+  @archive_domains [
+    "nytimes.com",
+    "washingtonpost.com",
+    "seattletimes.com",
+    "ft.com",
+    "bloomberg.com",
+    "cincinnati.com"
+  ]
 
   def should_archive?(url) do
     uri = URI.parse(url)
@@ -35,6 +42,11 @@ defmodule Hambot do
   end
 
   def make_archive_url(url) do
+    url =
+      URI.parse(url)
+      |> Map.put(:query, nil)
+      |> URI.to_string()
+
     "https://archive.today/newest/#{url}"
   end
 
@@ -42,5 +54,14 @@ defmodule Hambot do
     collect_urls(payload)
     |> Enum.filter(&should_archive?/1)
     |> Enum.map(&make_archive_url/1)
+  end
+
+  @post_message_url "https://slack.com/api/chat.postMessage"
+
+  def reply_in_thread(channel, ts, text) do
+    Req.post!(@post_message_url,
+      auth: {:bearer, Application.get_env(:hambot, :slack)[:bot_oauth_token]},
+      json: %{channel: channel, thread_ts: ts, text: text}
+    )
   end
 end

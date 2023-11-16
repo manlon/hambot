@@ -18,13 +18,24 @@ defmodule HambotWeb.ApiController do
     end
   end
 
-  def event(conn, %{"event" => e = %{"type" => "message"}}) do
+  def event(conn, %{"event" => e = %{"hidden" => true}}) do
+    render(conn, "message.json", %{urls: []})
+  end
+
+  def event(conn, %{"event" => e = %{"type" => "message", "channel" => channel, "ts" => ts}}) do
     urls = Hambot.archive_urls(e)
+
+    for url <- urls do
+      Logger.debug("replying in thread #{channel} #{ts} #{url}")
+      Hambot.reply_in_thread(channel, ts, url)
+    end
+
     render(conn, "message.json", %{urls: urls})
   end
 
   def event(conn, params) do
     Logger.debug("unhandled event")
+    Logger.debug(inspect(params))
     render(conn, "unknown_event.json", params)
   end
 end

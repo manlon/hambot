@@ -119,4 +119,5 @@ end
 config :hambot, :slack,
   client_secret: System.get_env("SLACK_CLIENT_SECRET"),
   signing_secret: System.get_env("SLACK_SIGNING_SECRET"),
-  verification_token: System.get_env("SLACK_VERIFICATION_TOKEN")
+  verification_token: System.get_env("SLACK_VERIFICATION_TOKEN"),
+  bot_oauth_token: System.get_env("SLACK_BOT_OAUTH_TOKEN")
