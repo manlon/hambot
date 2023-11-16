@@ -1,0 +1,2 @@
+# hambot
+ Lincoln favorite bot
