@@ -2,20 +2,28 @@ defmodule HambotWeb.ApiController do
   use HambotWeb, :controller
   require Logger
 
-  def index(conn, _params) do
-    render(conn, "index.json")
-  end
+  plug :auth_token
 
-  def event(conn, %{"type" => "url_verification", "challenge" => chal, "token" => tok}) do
-    Logger.debug(inspect({"url_verifcaiton", chal, tok}))
+  def auth_token(conn, options) do
+    token = conn.body_params["token"]
 
-    if tok == Application.get_env(:hambot, :slack)[:verification_token] do
-      render(conn, "url_verification.json", %{challenge: chal})
+    if token == Application.get_env(:hambot, :slack)[:verification_token] do
+      conn
     else
       conn
       |> put_status(:forbidden)
       |> render(:"403")
+      |> halt()
     end
+  end
+
+  def index(conn, _params) do
+    render(conn, "index.json")
+  end
+
+  def event(conn, %{"type" => "url_verification", "challenge" => chal}) do
+    Logger.debug(inspect({"url_verifcaiton", chal}))
+    render(conn, "url_verification.json", %{challenge: chal})
   end
 
   def event(conn, %{"event" => e = %{"hidden" => true}}) do

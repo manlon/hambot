@@ -16,7 +16,7 @@ defmodule HambotWeb.ApiJSON do
     %{data: %{message: "Unknown received"}}
   end
 
-  def render(:"403", assigns) do
+  def render("403.json", assigns) do
     %{}
   end
 end
