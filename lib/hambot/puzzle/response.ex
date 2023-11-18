@@ -4,6 +4,7 @@ defmodule Hambot.Puzzle.Response do
 
   schema "puzzle_responses" do
     field :type, :string
+    field :puzzle_id, :string
     field :response, :string
     field :user_id, :string
     field :score, :integer
@@ -14,7 +15,7 @@ defmodule Hambot.Puzzle.Response do
   @doc false
   def changeset(response, attrs) do
     response
-    |> cast(attrs, [:user_id, :type, :response, :score])
-    |> validate_required([:user_id, :type, :response, :score])
+    |> cast(attrs, [:user_id, :type, :puzzle_id, :response, :score])
+    |> validate_required([:user_id, :type, :puzzle_id, :response, :score])
   end
 end
