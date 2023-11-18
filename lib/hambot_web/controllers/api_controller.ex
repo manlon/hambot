@@ -30,12 +30,21 @@ defmodule HambotWeb.ApiController do
     render(conn, "message.json", %{urls: []})
   end
 
-  def event(conn, %{"event" => e = %{"type" => "message", "channel" => channel, "ts" => ts}}) do
+  def event(conn, %{
+        "event" => e = %{"type" => "message", "channel" => channel, "ts" => ts, "text" => text}
+      }) do
     urls = Hambot.archive_urls(e)
 
     for url <- urls do
       Logger.debug("replying in thread #{channel} #{ts} #{url}")
       Hambot.reply_in_thread(channel, ts, url)
+    end
+
+    case Hambot.Puzzle.Connections.score(text) do
+      {:ok, score} ->
+        Hambot.send_message(channel, "Your Connections score: #{score}")
+      _ ->
+        nil
     end
 
     render(conn, "message.json", %{urls: urls})
