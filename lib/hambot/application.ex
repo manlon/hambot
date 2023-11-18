@@ -9,7 +9,7 @@ defmodule Hambot.Application do
   def start(_type, _args) do
     children = [
       HambotWeb.Telemetry,
-      #Hambot.Repo,
+      Hambot.Repo,
       {DNSCluster, query: Application.get_env(:hambot, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Hambot.PubSub},
       # Start the Finch HTTP client for sending emails
