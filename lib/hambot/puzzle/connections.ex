@@ -48,7 +48,7 @@ defmodule Hambot.Puzzle.Connections do
   }
 
   defp score_grid(grid) do
-    sets = Enum.map(grid, &Enum.uniq/1) |> Enum.filter(&(length(&1) == 1)) |> Enum.map(&hd/1)
+    sets = for [c] <- Enum.map(grid, &Enum.uniq/1), do: c
     num_wrong = length(grid) - length(sets)
     score_set_order(sets) - 2 * num_wrong
   end
