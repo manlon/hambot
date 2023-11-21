@@ -40,3 +40,7 @@ npm-debug.log
 /.elixir_ls
 
 .DS_Store
+
+hambot_*.db
+hambot_*.db-wal
+hambot_*.db-shm

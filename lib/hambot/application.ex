@@ -9,13 +9,14 @@ defmodule Hambot.Application do
   def start(_type, _args) do
     children = [
       HambotWeb.Telemetry,
-      #Hambot.Repo,
+      Hambot.Repo,
       {DNSCluster, query: Application.get_env(:hambot, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Hambot.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Hambot.Finch},
       # Start a worker by calling: Hambot.Worker.start_link(arg)
       # {Hambot.Worker, arg},
+      Hambot.Archive.Server,
       # Start to serve requests, typically the last entry
       HambotWeb.Endpoint
     ]
