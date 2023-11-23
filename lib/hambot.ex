@@ -38,7 +38,7 @@ defmodule Hambot do
 
   def should_archive?(url) do
     uri = URI.parse(url)
-    Enum.any?(@archive_domains, &String.ends_with?(uri.host, &1))
+    Hambot.Archive.Server.is_archive?(uri.host)
   end
 
   def make_archive_url(url) do

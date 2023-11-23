@@ -10,6 +10,10 @@ defmodule Hambot.Archive.Server do
     GenServer.call(__MODULE__, {:add_domain, domain})
   end
 
+  def list_domains() do
+    GenServer.call(__MODULE__, :list_domains)
+  end
+
   def start_link(_ \\ nil) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
@@ -37,5 +41,9 @@ defmodule Hambot.Archive.Server do
 
   def handle_call({:is_archive?, domain}, _from, state) when is_binary(domain) do
     {:reply, domain in state, state}
+  end
+
+  def handle_call(:list_domains, _from, state) do
+    {:reply, Enum.to_list(state), state}
   end
 end
