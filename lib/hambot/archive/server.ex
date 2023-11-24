@@ -50,7 +50,7 @@ defmodule Hambot.Archive.Server do
   end
 
   def handle_call(:list_domains, _from, state) do
-    {:reply, Enum.to_list(state), state}
+    {:reply, Enum.to_list(state) |> Enum.sort(), state}
   end
 
   def handle_cast(:initialize_state, _state) do
