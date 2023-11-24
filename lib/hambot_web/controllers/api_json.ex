@@ -12,11 +12,11 @@ defmodule HambotWeb.ApiJSON do
     %{}
   end
 
-  def render("unknown_event.json", assigns) do
+  def render("unknown_event.json", _assigns) do
     %{data: %{message: "Unknown received"}}
   end
 
-  def render("403.json", assigns) do
+  def render("403.json", _assigns) do
     %{}
   end
 end

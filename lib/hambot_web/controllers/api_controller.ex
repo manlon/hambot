@@ -1,10 +1,11 @@
 defmodule HambotWeb.ApiController do
   use HambotWeb, :controller
   require Logger
+  alias Hambot.Commands
 
   plug :auth_token
 
-  def auth_token(conn, options) do
+  def auth_token(conn, _options) do
     token = conn.body_params["token"]
 
     if token == Application.get_env(:hambot, :slack)[:verification_token] do
@@ -26,8 +27,20 @@ defmodule HambotWeb.ApiController do
     render(conn, "url_verification.json", %{challenge: chal})
   end
 
-  def event(conn, %{"event" => e = %{"hidden" => true}}) do
+  def event(conn, %{"event" => %{"hidden" => true}}) do
     render(conn, "message.json", %{urls: []})
+  end
+
+  # don't reply to our own messages
+  def event(conn, %{
+        "authorizations" => [
+          %{"user_id" => user_id} | _
+        ],
+        "event" => %{
+          "user" => user_id
+        }
+      }) do
+    render(conn, "message.json", %{})
   end
 
   def event(conn, %{
@@ -43,6 +56,7 @@ defmodule HambotWeb.ApiController do
     case Hambot.Puzzle.Connections.score(text) do
       {:ok, score} ->
         Hambot.send_message(channel, "Your Connections score: #{score}")
+
       _ ->
         nil
     end
@@ -50,9 +64,19 @@ defmodule HambotWeb.ApiController do
     render(conn, "message.json", %{urls: urls})
   end
 
-  def event(conn, %{"event" => e = %{"type" => "app_mention", "channel" => channel, "ts" => _ts}}) do
-    Hambot.send_message(channel, "ham")
-    render(conn, "message.json")
+  def event(conn, %{
+        "authorizations" => [
+          %{"user_id" => user_id} | _
+        ],
+        "event" => %{
+          "type" => "app_mention",
+          "channel" => channel,
+          "ts" => _ts,
+          "text" => text
+        }
+      }) do
+    Commands.respond_to_mention(user_id, channel, text)
+    render(conn, "message.json", %{})
   end
 
   def event(conn, params) do
