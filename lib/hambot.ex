@@ -34,16 +34,4 @@ defmodule Hambot do
     |> Enum.filter(&Archive.should_archive?/1)
     |> Enum.map(&Archive.make_archive_url/1)
   end
-
-  def api() do
-    Application.get_env(:hambot, :slack_api)
-  end
-
-  def send_message(channel, text) do
-    api().send_message(channel, text)
-  end
-
-  def reply_in_thread(channel, ts, text) do
-    api().reply_in_thread(channel, ts, text)
-  end
 end

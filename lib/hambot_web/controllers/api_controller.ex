@@ -2,6 +2,7 @@ defmodule HambotWeb.ApiController do
   use HambotWeb, :controller
   require Logger
   alias Hambot.Commands
+  alias Hambot.Slack
 
   plug :auth_token
 
@@ -50,12 +51,12 @@ defmodule HambotWeb.ApiController do
 
     for url <- urls do
       Logger.debug("replying in thread #{channel} #{ts} #{url}")
-      Hambot.reply_in_thread(channel, ts, url)
+      Slack.reply_in_thread(channel, ts, url)
     end
 
     case Hambot.Puzzle.Connections.score(text) do
       {:ok, score} ->
-        Hambot.send_message(channel, "Your Connections score: #{score}")
+        Slack.send_message(channel, "Your Connections score: #{score}")
 
       _ ->
         nil

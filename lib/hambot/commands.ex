@@ -1,6 +1,7 @@
 defmodule Hambot.Commands do
   alias Hambot.Commands.Parser
   alias Hambot.Archive.Server, as: Archive
+  alias Hambot.Slack
 
   def respond_to_mention(user_id, channel, text) do
     text = String.trim(text)
@@ -19,29 +20,29 @@ defmodule Hambot.Commands do
       {:ok, [domain], _, _, _, _} ->
         case Archive.add_domain(domain) do
           :ok ->
-            Hambot.send_message(channel, "added #{domain} to the archive list :ham:")
+            Slack.send_message(channel, "added #{domain} to the archive list :ham:")
 
           {:error, msg} ->
-            Hambot.send_message(channel, "couldn't add domiain #{domain}: #{msg}")
+            Slack.send_message(channel, "couldn't add domiain #{domain}: #{msg}")
         end
 
       _ ->
-        Hambot.send_message(channel, "couldn't parse domain #{domain}")
+        Slack.send_message(channel, "couldn't parse domain #{domain}")
     end
   end
 
   def do_command(["domain", "list"], channel) do
     domains = Archive.list_domains()
     msgs = ["here are the domains :lincoln_shades: knows about" | domains]
-    Hambot.send_message(channel, Enum.join(msgs, "\n"))
+    Slack.send_message(channel, Enum.join(msgs, "\n"))
   end
 
   def do_command(other_args, channel) do
     msgs = ["don't know how to" | other_args]
-    Hambot.send_message(channel, Enum.join(msgs, " "))
+    Slack.send_message(channel, Enum.join(msgs, " "))
   end
 
   def respond_to_unknown(channel) do
-    Hambot.send_message(channel, "ham")
+    Slack.send_message(channel, "ham")
   end
 end
