@@ -9,12 +9,10 @@ kill_signal = "SIGTERM"
 
 [build]
 
-#[deploy]
-#  release_command = "/app/bin/migrate"
-
 [env]
   PHX_HOST = "hambot.fly.dev"
   PORT = "8080"
+  DATABASE_PATH = "/mnt/hambot.db"
 
 [http_service]
   internal_port = 8080
@@ -27,3 +25,8 @@ kill_signal = "SIGTERM"
     type = "connections"
     hard_limit = 1000
     soft_limit = 1000
+
+[mounts]
+    source = "hamsql"
+    destination = "/mnt"
+

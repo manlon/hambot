@@ -7,6 +7,7 @@ defmodule Hambot.Application do
 
   @impl true
   def start(_type, _args) do
+    Hambot.Release.migrate()
     children = [
       HambotWeb.Telemetry,
       Hambot.Repo,
