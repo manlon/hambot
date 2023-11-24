@@ -31,6 +31,18 @@ defmodule HambotWeb.ApiController do
     render(conn, "message.json", %{urls: []})
   end
 
+  # don't reply to our own messages
+  def event(conn, %{
+        "authorizations" => [
+          %{"user_id" => user_id} | _
+        ],
+        "event" => %{
+          "user" => user_id
+        }
+      }) do
+    render(conn, "message.json", %{})
+  end
+
   def event(conn, %{
         "event" => e = %{"type" => "message", "channel" => channel, "ts" => ts, "text" => text}
       }) do
@@ -67,7 +79,7 @@ defmodule HambotWeb.ApiController do
     render(conn, "message.json", %{})
   end
 
-def event(conn, params) do
+  def event(conn, params) do
     Logger.debug("unhandled event")
     render(conn, "unknown_event.json", params)
   end
