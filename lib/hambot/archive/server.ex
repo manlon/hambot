@@ -1,6 +1,7 @@
 defmodule Hambot.Archive.Server do
   use GenServer
   alias Hambot.Archive.Domain
+  require Logger
 
   def is_archive?(domain) when is_binary(domain) do
     GenServer.call(__MODULE__, {:is_archive?, domain})
@@ -45,7 +46,7 @@ defmodule Hambot.Archive.Server do
   end
 
   def handle_call({:is_archive?, domain}, _from, state) when is_binary(domain) do
-    {:reply, domain in state, state}
+    {:reply, is_archive?(state, domain), state}
   end
 
   def handle_call(:list_domains, _from, state) do
@@ -54,5 +55,21 @@ defmodule Hambot.Archive.Server do
 
   def handle_cast(:initialize_state, _state) do
     {:noreply, initialize_state()}
+  end
+
+  defp is_archive?(state, domain) do
+    Logger.debug("checking #{inspect(domain)}")
+
+    if domain in state do
+      true
+    else
+      case String.split(domain, ".") do
+        [_first, second | rest] ->
+          is_archive?(state, Enum.join([second | rest], "."))
+
+        _ ->
+          false
+      end
+    end
   end
 end
