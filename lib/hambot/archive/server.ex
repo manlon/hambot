@@ -58,14 +58,12 @@ defmodule Hambot.Archive.Server do
   end
 
   defp is_archive?(state, domain) do
-    Logger.debug("checking #{inspect(domain)}")
-
     if domain in state do
       true
     else
-      case String.split(domain, ".") do
-        [_first, second | rest] ->
-          is_archive?(state, Enum.join([second | rest], "."))
+      case String.split(domain, ".", parts: 2) do
+        [_first, rest] ->
+          is_archive?(state, rest)
 
         _ ->
           false
