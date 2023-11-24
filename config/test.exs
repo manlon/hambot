@@ -5,7 +5,7 @@ import Config
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
-config :Hambot, Hambot.Repo,
+config :hambot, Hambot.Repo,
   database: Path.expand("../hambot_test.db", Path.dirname(__ENV__.file)),
   pool_size: 5,
   pool: Ecto.Adapters.SQL.Sandbox
@@ -24,7 +24,7 @@ config :hambot, Hambot.Mailer, adapter: Swoosh.Adapters.Test
 config :swoosh, :api_client, false
 
 # Print only warnings and errors during test
-config :logger, level: :warning
+config :logger, level: :debug
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

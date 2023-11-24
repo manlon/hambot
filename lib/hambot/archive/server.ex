@@ -14,15 +14,20 @@ defmodule Hambot.Archive.Server do
     GenServer.call(__MODULE__, :list_domains)
   end
 
+  def reinitialize() do
+    GenServer.cast(__MODULE__, :initialize_state)
+  end
+
   def start_link(_ \\ nil) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
   def init(_) do
-    domains =
-      Domain.list_domains() |> MapSet.new()
+    {:ok, initialize_state()}
+  end
 
-    {:ok, domains}
+  def initialize_state() do
+    Domain.list_domains() |> MapSet.new()
   end
 
   def handle_call({:add_domain, domain}, _from, state) when is_binary(domain) do
@@ -45,5 +50,9 @@ defmodule Hambot.Archive.Server do
 
   def handle_call(:list_domains, _from, state) do
     {:reply, Enum.to_list(state), state}
+  end
+
+  def handle_cast(:initialize_state, _state) do
+    {:noreply, initialize_state()}
   end
 end

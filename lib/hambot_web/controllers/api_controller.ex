@@ -5,7 +5,7 @@ defmodule HambotWeb.ApiController do
 
   plug :auth_token
 
-  def auth_token(conn, options) do
+  def auth_token(conn, _options) do
     token = conn.body_params["token"]
 
     if token == Application.get_env(:hambot, :slack)[:verification_token] do
@@ -27,7 +27,7 @@ defmodule HambotWeb.ApiController do
     render(conn, "url_verification.json", %{challenge: chal})
   end
 
-  def event(conn, %{"event" => e = %{"hidden" => true}}) do
+  def event(conn, %{"event" => %{"hidden" => true}}) do
     render(conn, "message.json", %{urls: []})
   end
 
