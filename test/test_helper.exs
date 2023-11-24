@@ -1,3 +1,5 @@
 ExUnit.start()
 Ecto.Adapters.SQL.Sandbox.mode(Hambot.Repo, :manual)
-Application.put_env(:hambot, :slack_api, Hambot.Slack.MockClient)
+
+Mox.defmock(Hambot.MockSlackApi, for: Hambot.Slack)
+Application.put_env(:hambot, :slack_api, Hambot.MockSlackApi)

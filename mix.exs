@@ -52,7 +52,8 @@ defmodule Hambot.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:plug_cowboy, "~> 2.5"},
       {:req, "~> 0.4.4"},
-      {:nimble_parsec, "~> 1.4"}
+      {:nimble_parsec, "~> 1.4"},
+      {:mox, "~> 1.1", only: :test}
     ]
   end
 
