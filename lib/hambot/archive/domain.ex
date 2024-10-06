@@ -1,14 +1,15 @@
 defmodule Hambot.Archive.Domain do
   use Ecto.Schema
+  import Ecto.Query
   import Ecto.Changeset
   alias Hambot.Repo
-  alias Hambot.Archive.Domain
+  alias Hambot.Slack.Team
 
   @domain_regex ~r/^([a-z0-9-]+\.)+[a-z]{2,}$/
 
   schema "archive_domains" do
     field :domain, :string
-    belongs_to :team, Hambot.Slack.Team
+    belongs_to :team, Team
 
     timestamps(type: :utc_datetime)
   end
@@ -32,12 +33,17 @@ defmodule Hambot.Archive.Domain do
   end
 
   def list_domains do
-    Repo.all(Domain)
+    Repo.all(__MODULE__)
     |> Enum.map(& &1.domain)
   end
 
   def add_domain(domain) do
-    changeset(%Domain{}, %{domain: domain})
+    changeset(%__MODULE__{}, %{domain: domain})
     |> Repo.insert()
+  end
+
+  def update_null_teams(%Team{id: id}) do
+    query = from d in __MODULE__, where: is_nil(d.team_id)
+    Repo.update_all(query, set: [team_id: id])
   end
 end

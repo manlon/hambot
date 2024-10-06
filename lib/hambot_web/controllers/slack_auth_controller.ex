@@ -1,8 +1,19 @@
 defmodule HambotWeb.SlackAuthController do
   use HambotWeb, :controller
+  alias Hambot.Slack.Team
 
   def index(conn, %{"code" => code}) do
     {:ok, resp_body} = Hambot.Slack.HTTPClient.get_oauth_token(code)
-    render(conn, :index, layout: false, beep: resp_body)
+
+    team_params = %{
+      name: resp_body["team"]["name"],
+      team_id: resp_body["team"]["id"],
+      access_token: resp_body["access_token"],
+      scope: resp_body["scope"]
+    }
+
+    team = Team.add_team_auth(team_params)
+
+    render(conn, :index, layout: false, beep: team)
   end
 end
