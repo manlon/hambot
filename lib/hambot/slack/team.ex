@@ -48,6 +48,11 @@ defmodule Hambot.Slack.Team do
     Repo.get_by(__MODULE__, team_id: team_id)
   end
 
+  def find_by_team_id_with_domains(team_id) do
+    Repo.get_by(__MODULE__, team_id: team_id)
+    |> Repo.preload(:domains)
+  end
+
   def get_access_token(team_id) do
     case find_by_team_id(team_id) do
       nil ->
@@ -57,4 +62,9 @@ defmodule Hambot.Slack.Team do
         team.access_token
     end
   end
+
+  def add_domain(team = %__MODULE__{}, domain) do
+    Domain.add_domain(team.id, domain)
+  end
+
 end

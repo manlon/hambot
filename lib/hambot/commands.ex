@@ -1,8 +1,8 @@
 defmodule Hambot.Commands do
   alias Hambot.Commands.Parser
-  alias Hambot.Archive.Server, as: Archive
   alias Hambot.Slack
   alias Hambot.Slack.Team
+  alias Hambot.Archive
 
   def respond_to_mention(team_id, user_id, channel, text) do
     text = String.trim(text)
@@ -19,7 +19,7 @@ defmodule Hambot.Commands do
   def do_command(["domain", "add", domain], team_id, channel) do
     case Parser.parse_link(domain) do
       {:ok, [domain], _, _, _, _} ->
-        case Archive.add_domain(domain) do
+        case Archive.add_domain(team_id, domain) do
           :ok ->
             send_message(team_id, channel, "added #{domain} to the archive list :ham:")
 
@@ -33,7 +33,7 @@ defmodule Hambot.Commands do
   end
 
   def do_command(["domain", "list"], team_id, channel) do
-    domains = Archive.list_domains()
+    domains = Archive.list_domains(team_id)
     msgs = ["here are the domains :lincoln_shades: knows about" | domains]
     send_message(team_id, channel, Enum.join(msgs, "\n"))
   end

@@ -29,9 +29,8 @@ defmodule Hambot do
     end)
   end
 
-  def archive_urls(payload) do
+  def archive_urls(team_id, payload) do
     collect_urls(payload)
-    |> Enum.filter(&Archive.should_archive?/1)
-    |> Enum.map(&Archive.make_archive_url/1)
+    |> Archive.archive_urls(team_id)
   end
 end

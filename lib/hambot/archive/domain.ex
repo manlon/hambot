@@ -32,13 +32,19 @@ defmodule Hambot.Archive.Domain do
     end
   end
 
-  def list_domains do
+  def list_domains() do
     Repo.all(__MODULE__)
     |> Enum.map(& &1.domain)
   end
 
-  def add_domain(domain) do
-    changeset(%__MODULE__{}, %{domain: domain})
+  def list_domains(team_id) do
+    Team.find_by_team_id_with_domains(team_id).domains
+    |> Enum.map(& &1.domain)
+  end
+
+
+  def add_domain(team_id, domain) do
+    changeset(%__MODULE__{}, %{team_id: team_id, domain: domain})
     |> Repo.insert()
   end
 
