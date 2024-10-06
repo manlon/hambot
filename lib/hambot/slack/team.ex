@@ -47,4 +47,14 @@ defmodule Hambot.Slack.Team do
   def find_by_team_id(team_id) do
     Repo.get_by(__MODULE__, team_id: team_id)
   end
+
+  def get_access_token(team_id) do
+    case find_by_team_id(team_id) do
+      nil ->
+        raise "No team found with team_id: #{team_id}"
+
+      team ->
+        team.access_token
+    end
+  end
 end

@@ -4,17 +4,17 @@ defmodule Hambot.Slack.HTTPClient do
   @post_message_url "https://slacok.com/api/chat.postMessage"
   @oauth_access_url "https://slack.com/api/oauth.v2.access"
 
-  def reply_in_thread(channel, ts, text) do
+  def reply_in_thread(access_token, channel, ts, text) do
     Req.post(@post_message_url,
-      auth: {:bearer, Application.get_env(:hambot, :slack)[:bot_oauth_token]},
+      auth: {:bearer, access_token},
       json: %{channel: channel, thread_ts: ts, text: text}
     )
     |> parse_response()
   end
 
-  def send_message(channel, text) do
+  def send_message(access_token, channel, text) do
     Req.post(@post_message_url,
-      auth: {:bearer, Application.get_env(:hambot, :slack)[:bot_oauth_token]},
+      auth: {:bearer, access_token},
       json: %{channel: channel, text: text}
     )
     |> parse_response()
