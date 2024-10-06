@@ -8,6 +8,7 @@ defmodule Hambot.Archive.Domain do
 
   schema "archive_domains" do
     field :domain, :string
+    belongs_to :team, Hambot.Slack.Team
 
     timestamps(type: :utc_datetime)
   end
@@ -16,8 +17,9 @@ defmodule Hambot.Archive.Domain do
   def changeset(domain, attrs) do
     domain
     |> cast(attrs, [:domain])
-    |> validate_required([:domain])
+    |> validate_required([:domain, :team_id])
     |> validate_format(:domain, @domain_regex)
+    |> assoc_constraint(:team)
   end
 
   def err_message(cs) do
