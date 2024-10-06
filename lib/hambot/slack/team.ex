@@ -3,6 +3,7 @@ defmodule Hambot.Slack.Team do
   import Ecto.Changeset
   alias Hambot.Repo
   alias Hambot.Archive.Domain
+  alias Hambot.Puzzle.Result
 
   schema "slack_teams" do
     field :name, :string
@@ -37,6 +38,7 @@ defmodule Hambot.Slack.Team do
     # upgrade assocs for existing records if we can
     if Application.get_env(:hambot, :slack)[:upgrade_team_id] == team_id do
       Domain.update_null_teams(team)
+      Result.update_null_teams(team)
     end
 
     team

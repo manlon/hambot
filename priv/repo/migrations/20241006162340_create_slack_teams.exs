@@ -14,5 +14,9 @@ defmodule Hambot.Repo.Migrations.CreateSlackTeams do
     alter table(:archive_domains) do
       add :team_id, references(:slack_teams)
     end
+
+    alter table(:puzzle_results) do
+      add :team_id, references(:slack_teams)
+    end
   end
 end
