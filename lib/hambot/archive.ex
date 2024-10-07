@@ -8,12 +8,14 @@ defmodule Hambot.Archive do
 
   def archive_urls(team_id, urls) do
     team = Team.find_by_team_id_with_domains(team_id)
+
     case team do
       nil ->
         []
 
       team ->
         archive_domains = team.domains |> Enum.map(& &1.domain)
+
         for url <- urls, should_archive?(url, archive_domains) do
           make_archive_url(url)
         end
@@ -24,6 +26,7 @@ defmodule Hambot.Archive do
     case URI.parse(url).host do
       nil ->
         false
+
       host ->
         should_archive_domain?(host, archive_domains)
     end
@@ -52,12 +55,12 @@ defmodule Hambot.Archive do
     @archive_prefix <> url
   end
 
- def add_domain(team_id, domain) do
-   Team.find_by_team_id(team_id)
-   |> Team.add_domain(domain)
- end
+  def add_domain(team_id, domain) do
+    Team.find_by_team_id(team_id)
+    |> Team.add_domain(domain)
+  end
 
- def list_domains(team_id) do
-   Domain.list_domains(team_id)
- end
+  def list_domains(team_id) do
+    Domain.list_domains(team_id)
+  end
 end

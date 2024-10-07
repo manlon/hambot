@@ -30,7 +30,7 @@ defmodule Hambot do
   end
 
   def archive_urls(team_id, payload) do
-    collect_urls(payload)
-    |> Archive.archive_urls(team_id)
+    urls = collect_urls(payload)
+    Archive.archive_urls(team_id, urls)
   end
 end

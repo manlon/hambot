@@ -1,7 +1,7 @@
 defmodule Hambot.Slack.HTTPClient do
   @behaviour Hambot.Slack
 
-  @post_message_url "https://slacok.com/api/chat.postMessage"
+  @post_message_url "https://slack.com/api/chat.postMessage"
   @oauth_access_url "https://slack.com/api/oauth.v2.access"
 
   def reply_in_thread(access_token, channel, ts, text) do
