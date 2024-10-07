@@ -9,11 +9,12 @@ defmodule Hambot.DomainFixtures do
   @doc """
   Generate a domain.
   """
-  def domain_fixture(attrs \\ %{}) do
+  def domain_fixture(team, attrs \\ %{}) do
     {:ok, domain} =
       attrs
       |> Enum.into(%{
-        domain: "exmaple.com"
+        domain: "exmaple.com",
+        team_id: team.id
       })
       |> then(&Domain.changeset(%Domain{}, &1))
       |> Hambot.Repo.insert()

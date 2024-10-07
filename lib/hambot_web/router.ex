@@ -18,6 +18,7 @@ defmodule HambotWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/slack_auth", SlackAuthController, :index
   end
 
   # Other scopes may use custom stacks.

@@ -3,6 +3,7 @@ defmodule HambotWeb.ApiController do
   require Logger
   alias Hambot.Commands
   alias Hambot.Slack
+  alias Hambot.Slack.Team
 
   plug :auth_token
 
@@ -45,18 +46,19 @@ defmodule HambotWeb.ApiController do
   end
 
   def event(conn, %{
+        "team_id" => team_id,
         "event" => e = %{"type" => "message", "channel" => channel, "ts" => ts, "text" => text}
       }) do
-    urls = Hambot.archive_urls(e)
+    urls = Hambot.archive_urls(team_id, e)
 
     for url <- urls do
       Logger.debug("replying in thread #{channel} #{ts} #{url}")
-      Slack.reply_in_thread(channel, ts, url)
+      reply_in_thread(team_id, channel, ts, url)
     end
 
     case Hambot.Puzzle.Connections.score(text) do
       {:ok, score} ->
-        Slack.send_message(channel, "Your Connections score: #{score}")
+        send_message(team_id, channel, "Your Connections score: #{score}")
 
       _ ->
         nil
@@ -69,6 +71,7 @@ defmodule HambotWeb.ApiController do
         "authorizations" => [
           %{"user_id" => user_id} | _
         ],
+        "team_id" => team_id,
         "event" => %{
           "type" => "app_mention",
           "channel" => channel,
@@ -76,12 +79,22 @@ defmodule HambotWeb.ApiController do
           "text" => text
         }
       }) do
-    Commands.respond_to_mention(user_id, channel, text)
+    Commands.respond_to_mention(team_id, user_id, channel, text)
     render(conn, "message.json", %{})
   end
 
   def event(conn, params) do
     Logger.debug("unhandled event")
     render(conn, "unknown_event.json", params)
+  end
+
+  defp send_message(team_id, channel, text) do
+    token = Team.get_access_token(team_id)
+    Slack.send_message(token, channel, text)
+  end
+
+  defp reply_in_thread(team_id, channel, ts, msg) do
+    token = Team.get_access_token(team_id)
+    Slack.reply_in_thread(token, channel, ts, msg)
   end
 end

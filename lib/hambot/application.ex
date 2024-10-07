@@ -17,7 +17,6 @@ defmodule Hambot.Application do
       {Finch, name: Hambot.Finch},
       # Start a worker by calling: Hambot.Worker.start_link(arg)
       # {Hambot.Worker, arg},
-      Hambot.Archive.Server,
       # Start to serve requests, typically the last entry
       HambotWeb.Endpoint
     ]
