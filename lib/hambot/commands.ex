@@ -34,7 +34,7 @@ defmodule Hambot.Commands do
 
   def do_command(["domain", "list"], team_id, channel) do
     domains = Archive.list_domains(team_id)
-    msgs = ["here are the domains :lincoln_shades: knows about" | domains]
+    msgs = ["here are the domains :ham: knows about" | domains]
     send_message(team_id, channel, Enum.join(msgs, "\n"))
   end
 
