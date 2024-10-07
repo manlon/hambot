@@ -1,31 +1,43 @@
 defmodule Hambot.CommandsTest do
   use Hambot.DataCase
-  alias Hambot.Archive.Server
+  import Hambot.TeamFixtures
 
   import Mox
   setup :verify_on_exit!
 
   describe "domain commands" do
     test "domain add" do
-      Hambot.MockSlackApi
-      |> expect(:send_message, fn "C123", "added example.com" <> _ -> :ok end)
+      team = team_fixture()
 
-      Hambot.Commands.respond_to_mention("U123", "C123", "<@U123> domain add https://example.com")
+      Hambot.MockSlackApi
+      |> expect(:send_message, fn team_token, "C123", "added example.com" <> _ ->
+        assert team_token == team.access_token
+        :ok
+      end)
+
+      Hambot.Commands.respond_to_mention(
+        team.team_id,
+        "U123",
+        "C123",
+        "<@U123> domain add https://example.com"
+      )
     end
 
     test "domain list" do
+      alias Hambot.Archive
+      team = team_fixture()
       Hambot.Repo.delete_all(Hambot.Archive.Domain)
-      Server.reinitialize()
-      Server.add_domain("zoop.com")
-      Server.add_domain("zeep.com")
+      Archive.add_domain(team.team_id, "zoop.com")
+      Archive.add_domain(team.team_id, "zeep.com")
 
       Hambot.MockSlackApi
-      |> expect(:send_message, fn "C123", msg ->
+      |> expect(:send_message, fn team_token, "C123", msg ->
+        assert team_token == team.access_token
         assert String.contains?(msg, "zeep.com\nzoop.com")
         :ok
       end)
 
-      Hambot.Commands.respond_to_mention("U123", "C123", "<@U123> domain list")
+      Hambot.Commands.respond_to_mention(team.team_id, "U123", "C123", "<@U123> domain list")
     end
   end
 end

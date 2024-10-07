@@ -20,7 +20,7 @@ defmodule Hambot.Commands do
     case Parser.parse_link(domain) do
       {:ok, [domain], _, _, _, _} ->
         case Archive.add_domain(team_id, domain) do
-          :ok ->
+          {:ok, _} ->
             send_message(team_id, channel, "added #{domain} to the archive list :ham:")
 
           {:error, msg} ->

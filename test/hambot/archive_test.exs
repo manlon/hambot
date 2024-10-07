@@ -3,25 +3,25 @@ defmodule Hambot.ArchiveTest do
 
   describe "servers" do
     alias Hambot.Archive
-    alias Hambot.Archive.Server
-
     import Hambot.DomainFixtures
+    import Hambot.TeamFixtures
 
     # @invalid_attrs %{}
 
-    test "list_domains/0 returns all domains" do
-      domain = domain_fixture(%{domain: "aaa.com"})
-      GenServer.cast(Server, :initialize_state)
-      assert Server.list_domains() == [domain.domain]
+    test "list_domains/1 returns all domains" do
+      team = team_fixture()
+      domain = domain_fixture(team, %{domain: "aaa.com"})
 
-      Server.add_domain("zzz.com")
-      Server.add_domain("yyy.com")
-      Server.add_domain("xxx.com")
-      Server.add_domain("bbb.com")
-      Server.add_domain("ccc.com")
-      Server.add_domain("www.com")
+      assert Archive.list_domains(team.team_id) == [domain.domain]
 
-      assert Server.list_domains() == [
+      Archive.add_domain(team.team_id, "zzz.com")
+      Archive.add_domain(team.team_id, "yyy.com")
+      Archive.add_domain(team.team_id, "xxx.com")
+      Archive.add_domain(team.team_id, "bbb.com")
+      Archive.add_domain(team.team_id, "ccc.com")
+      Archive.add_domain(team.team_id, "www.com")
+
+      assert Archive.list_domains(team.team_id) == [
                "aaa.com",
                "bbb.com",
                "ccc.com",
@@ -33,11 +33,14 @@ defmodule Hambot.ArchiveTest do
     end
 
     test "subdomain is archived" do
-      domain = domain_fixture(%{domain: "bleep.com"})
-      GenServer.cast(Server, :initialize_state)
-      assert Server.is_archive?(domain.domain)
-      assert Archive.should_archive?("https://zeep.zop.bleep.com/zoop?zop=zeep")
-      assert not Archive.should_archive?("https://espn.com/zoop?zop=zeep")
+      team = team_fixture()
+      _domain = domain_fixture(team, %{domain: "bleep.com"})
+
+      assert length(
+               Archive.archive_urls(team.team_id, ["https://zeep.zop.bleep.com/zoop?zop=zeep"])
+             ) == 1
+
+      assert length(Archive.archive_urls(team.team_id, ["https://espn.com/zoop?zop=zeep"])) == 0
     end
   end
 end

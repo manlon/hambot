@@ -64,7 +64,6 @@ defmodule Hambot.Slack.Team do
   end
 
   def add_domain(team = %__MODULE__{}, domain) do
-    Domain.add_domain(team.id, domain)
+    Domain.add_domain(team, domain)
   end
-
 end

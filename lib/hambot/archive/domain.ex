@@ -17,7 +17,7 @@ defmodule Hambot.Archive.Domain do
   @doc false
   def changeset(domain, attrs) do
     domain
-    |> cast(attrs, [:domain])
+    |> cast(attrs, [:domain, :team_id])
     |> validate_required([:domain, :team_id])
     |> validate_format(:domain, @domain_regex)
     |> assoc_constraint(:team)
@@ -40,11 +40,11 @@ defmodule Hambot.Archive.Domain do
   def list_domains(team_id) do
     Team.find_by_team_id_with_domains(team_id).domains
     |> Enum.map(& &1.domain)
+    |> Enum.sort()
   end
 
-
-  def add_domain(team_id, domain) do
-    changeset(%__MODULE__{}, %{team_id: team_id, domain: domain})
+  def add_domain(%Team{id: id}, domain) do
+    changeset(%__MODULE__{}, %{team_id: id, domain: domain})
     |> Repo.insert()
   end
 
