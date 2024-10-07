@@ -42,5 +42,21 @@ defmodule Hambot.ArchiveTest do
 
       assert length(Archive.archive_urls(team.team_id, ["https://espn.com/zoop?zop=zeep"])) == 0
     end
+
+    test "dedupe" do
+      team = team_fixture()
+
+      {:ok, _} = Archive.add_domain(team.team_id, "xxx.com")
+      assert length(Archive.list_domains(team.team_id)) == 1
+
+      {:ok, _} = Archive.add_domain(team.team_id, "yyy.com")
+      assert length(Archive.list_domains(team.team_id)) == 2
+
+      {:ok, _} = Archive.add_domain(team.team_id, "zzz.com")
+      assert length(Archive.list_domains(team.team_id)) == 3
+
+      {:error, "domain is already added"} = Archive.add_domain(team.team_id, "xxx.com")
+      assert length(Archive.list_domains(team.team_id)) == 3
+    end
   end
 end

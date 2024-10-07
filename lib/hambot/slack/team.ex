@@ -64,6 +64,16 @@ defmodule Hambot.Slack.Team do
   end
 
   def add_domain(team = %__MODULE__{}, domain) do
-    Domain.add_domain(team, domain)
+    existing? =
+      team
+      |> Repo.preload(:domains)
+      |> then(& &1.domains)
+      |> Enum.any?(&(&1.domain == domain))
+
+    if existing? do
+      {:error, "domain is already added"}
+    else
+      Domain.add_domain(team, domain)
+    end
   end
 end
