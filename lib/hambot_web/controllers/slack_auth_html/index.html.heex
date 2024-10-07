@@ -1,3 +1,14 @@
-beep boop
-
-<%= inspect(@beep) %>
+<div class="flex items-center justify-center h-screen bg-[#d5b3a3]">
+  <div class="flex flex-col items-center">
+    <div class="text-2xl mb-4">
+      Hambot has been added to <span class="font-extrabold"><%= @team.name %></span>
+    </div>
+    <img
+      src="images/hambot.webp"
+      alt="hambot"
+      class="mb-4 max-h-[60vh] object-contain blended-image
+            [mask-image:radial-gradient(closest-side,rgba(0,0,0,1)95%,rgba(0,0,0,0)100%)]
+      "
+    />
+  </div>
+</div>
