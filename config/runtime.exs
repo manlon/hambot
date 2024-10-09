@@ -119,3 +119,5 @@ config :hambot, :slack,
   bot_oauth_token: System.get_env("SLACK_BOT_OAUTH_TOKEN"),
   client_id: System.get_env("SLACK_CLIENT_ID"),
   upgrade_team_id: System.get_env("SLACK_UPGRADE_TEAM_ID")
+
+config :hambot, :codebro, brain_file: System.get_env("CODEBRO_BRAIN_FILE") || "/mnt/codebro.brain"

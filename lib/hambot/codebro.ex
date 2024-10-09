@@ -1,10 +1,13 @@
 defmodule Hambot.Codebro do
   use GenServer
+  require Logger
+
+  defstruct brain_file: nil, graph: %{}, tasks: [], learn: true
 
   # Client API
 
-  def start_link(init_arg) do
-    GenServer.start_link(__MODULE__, init_arg, name: __MODULE__)
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   # Send codebro a message
@@ -15,18 +18,56 @@ defmodule Hambot.Codebro do
   # Server (callbacks)
 
   @impl true
-  def init(init_arg) do
-    {:ok, init_arg}
+  def init(opts \\ []) do
+    state = %__MODULE__{
+      brain_file:
+        Keyword.get(opts, :brain_file, Application.get_env(:hambot, :codebro)[:brain_file]),
+      graph: %{},
+      tasks: [],
+      learn: Keyword.get(opts, :learn, true)
+    }
+
+    state =
+      if state.brain_file && File.exists?(state.brain_file) do
+        Logger.debug("Loading codebro brain from #{state.brain_file}")
+
+        graph =
+          file_sentence_stream(state.brain_file)
+          |> update_graph_from_sentences(state.graph)
+
+        Map.put(state, :graph, graph)
+      else
+        state
+      end
+
+    {:ok, state}
   end
 
   @impl true
-  def handle_call({:message, message}, _from, state) do
-    # Handle the prompt using the Markov chain (to be implemented)
-    reply =
-      if message do
-        "I'm sorry, I can't do that."
+  def handle_call({:message, message}, _from, state = %__MODULE__{graph: graph}) do
+    sentences = string_to_sentence_stream(message)
+    words = List.flatten(Enum.to_list(sentences))
+
+    seeds =
+      if length(words) > 2 do
+        Enum.filter(words, fn w -> Map.has_key?(graph, {:start, w}) end)
       else
-        "I'm sorry, Dave. I'm afraid I can't do that."
+        []
+      end
+
+    reply =
+      if Enum.empty?(seeds) do
+        generate_markov_text(graph)
+      else
+        generate_markov_text(graph, Enum.random(seeds))
+      end
+
+    state =
+      if state.learn do
+        graph = update_graph_from_sentences(sentences, graph)
+        put_in(state.graph, graph)
+      else
+        state
       end
 
     {:reply, reply, state}
@@ -56,7 +97,7 @@ defmodule Hambot.Codebro do
   end
 
   @punc [".", "?", "!"]
-  def tokenize_string(text) do
+  def string_to_sentence_stream(text) do
     chunk_fun = fn word, acc ->
       if String.ends_with?(word, @punc) do
         {:cont, Enum.reverse([String.slice(word, 0..-2//1) | acc]), []}
@@ -75,9 +116,9 @@ defmodule Hambot.Codebro do
     |> Stream.chunk_while([], chunk_fun, after_fun)
   end
 
-  def tokens_stream(file) do
+  def file_sentence_stream(file) do
     File.stream!(file)
-    |> Stream.flat_map(&tokenize_string/1)
+    |> Stream.flat_map(&string_to_sentence_stream/1)
   end
 
   def triples(tokens) do
@@ -88,15 +129,20 @@ defmodule Hambot.Codebro do
     Stream.chunk_every(with_delims, 3, 1, :discard)
   end
 
-  def markov_stream(file) do
-    tokens_stream(file)
-    |> Stream.flat_map(&triples/1)
+  def triples_stream(sentence_stream) do
+    Stream.flat_map(sentence_stream, &triples/1)
   end
 
-  def triples_to_graph(triples) do
-    Enum.reduce(triples, %{}, fn
+  def triples_to_graph(triples, graph \\ %{}) do
+    Enum.reduce(triples, graph, fn
       [word1, word2, word3], graph ->
         Map.update(graph, {word1, word2}, MapSet.new([word3]), &MapSet.put(&1, word3))
     end)
+  end
+
+  def update_graph_from_sentences(sentences, graph \\ %{}) do
+    sentences
+    |> triples_stream()
+    |> triples_to_graph(graph)
   end
 end
