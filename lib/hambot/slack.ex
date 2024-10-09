@@ -7,8 +7,8 @@ defmodule Hambot.Slack do
     impl().reply_in_thread(team_id, channel, ts, text)
   end
 
-  def send_message(team_id, channel, text) do
-    impl().send_message(team_id, channel, text)
+  def send_message(team_id, channel, text, username \\ nil, icon_url \\ nil) do
+    impl().send_message(team_id, channel, text, username, icon_url)
   end
 
   defp impl, do: Application.get_env(:hambot, :slack_api)

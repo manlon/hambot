@@ -45,6 +45,7 @@ defmodule Hambot.Codebro do
 
   @impl true
   def handle_call({:message, message}, _from, state = %__MODULE__{graph: graph}) do
+    Logger.debug("Codebro received message: #{message}")
     sentences = string_to_sentence_stream(message)
     words = List.flatten(Enum.to_list(sentences))
 
@@ -90,6 +91,7 @@ defmodule Hambot.Codebro do
   end
 
   # Task message handling
+  @impl true
   def handle_info({ref, result}, state) do
     # The task succeed so we can cancel the monitoring and discard the DOWN message
     Process.demonitor(ref, [:flush])
