@@ -23,7 +23,7 @@ defmodule Hambot.Codebro do
       brain_file:
         Keyword.get(opts, :brain_file, Application.get_env(:hambot, :codebro)[:brain_file]),
       graph: %{},
-      tasks: [],
+      tasks: %{},
       learn: Keyword.get(opts, :learn, true)
     }
 
@@ -31,7 +31,7 @@ defmodule Hambot.Codebro do
       if state.brain_file && File.exists?(state.brain_file) do
         Logger.debug("Loading codebro brain from #{state.brain_file}")
 
-        graph =
+        {_updated?, graph} =
           file_sentence_stream(state.brain_file)
           |> update_graph_from_sentences(state.graph)
 
@@ -55,22 +55,65 @@ defmodule Hambot.Codebro do
         []
       end
 
-    reply =
-      if Enum.empty?(seeds) do
-        generate_markov_text(graph)
-      else
-        generate_markov_text(graph, Enum.random(seeds))
-      end
+    reply = generate_markov_text(graph, Enum.random([{:start, :start} | seeds]))
 
     state =
       if state.learn do
-        graph = update_graph_from_sentences(sentences, graph)
-        put_in(state.graph, graph)
+        {new_sentences, graph} =
+          Enum.reduce(sentences, {[], graph}, fn sentence, {acc, graph} ->
+            {updated?, graph} = update_graph_from_sentences([sentence], graph)
+            acc = if updated?, do: [sentence | acc], else: acc
+            {acc, graph}
+          end)
+
+        state = put_in(state.graph, graph)
+
+        _state =
+          if !Enum.empty?(new_sentences) do
+            Logger.debug("Updated codebro brain")
+
+            task =
+              Task.Supervisor.async_nolink(Hambot.CodebroTaskSupervisor, fn ->
+                write_to_brain(new_sentences, state.brain_file)
+              end)
+
+            _state = put_in(state.tasks[task.ref], length(words))
+          else
+            Logger.debug("no brain update needed")
+            state
+          end
       else
         state
       end
 
     {:reply, reply, state}
+  end
+
+  # Task message handling
+  def handle_info({ref, result}, state) do
+    # The task succeed so we can cancel the monitoring and discard the DOWN message
+    Process.demonitor(ref, [:flush])
+    {_, state} = pop_in(state.tasks[ref])
+    IO.puts("Got #{inspect(result)}")
+    {:noreply, state}
+  end
+
+  def handle_info({:DOWN, ref, _, _, reason}, state) do
+    {_, state} = pop_in(state.tasks[ref])
+    IO.puts("Writing to brain failed with reason #{inspect(reason)}")
+    {:noreply, state}
+  end
+
+  def write_to_brain(sentences, file) do
+    count =
+      Enum.reduce(sentences, 0, fn sentence, c ->
+        line = Enum.join(sentence, " ") <> "\n"
+        File.write(file, line, [:append])
+        c + 1
+      end)
+
+    Logger.debug("Wrote #{count} line(s) to brain")
+    :ok
   end
 
   def generate_markov_text(graph) do
@@ -84,6 +127,8 @@ defmodule Hambot.Codebro do
       generate_markov_text(graph)
     end
   end
+
+  def generate_markov_text(graph, seed), do: generate_markov_text(graph, seed, [])
 
   def generate_markov_text(_graph, {word, :stop}, acc) do
     Enum.reverse([word | acc])
@@ -134,9 +179,19 @@ defmodule Hambot.Codebro do
   end
 
   def triples_to_graph(triples, graph \\ %{}) do
-    Enum.reduce(triples, graph, fn
-      [word1, word2, word3], graph ->
-        Map.update(graph, {word1, word2}, MapSet.new([word3]), &MapSet.put(&1, word3))
+    Enum.reduce(triples, {false, graph}, fn
+      [word1, word2, word3], {updated?, graph} ->
+        key = {word1, word2}
+
+        if Map.has_key?(graph, key) do
+          if MapSet.member?(graph[key], word3) do
+            {updated?, graph}
+          else
+            {true, Map.update!(graph, key, &MapSet.put(&1, word3))}
+          end
+        else
+          {true, Map.put(graph, key, MapSet.new([word3]))}
+        end
     end)
   end
 
