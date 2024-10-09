@@ -8,6 +8,7 @@ defmodule Hambot.Application do
   @impl true
   def start(_type, _args) do
     Hambot.Release.migrate()
+
     children = [
       HambotWeb.Telemetry,
       Hambot.Repo,
@@ -17,6 +18,8 @@ defmodule Hambot.Application do
       {Finch, name: Hambot.Finch},
       # Start a worker by calling: Hambot.Worker.start_link(arg)
       # {Hambot.Worker, arg},
+      {Task.Supervisor, name: Hambot.CodebroTaskSupervisor},
+      {Hambot.Codebro, []},
       # Start to serve requests, typically the last entry
       HambotWeb.Endpoint
     ]

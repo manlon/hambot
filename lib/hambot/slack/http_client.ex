@@ -12,10 +12,10 @@ defmodule Hambot.Slack.HTTPClient do
     |> parse_response()
   end
 
-  def send_message(access_token, channel, text) do
+  def send_message(access_token, channel, text, username \\ nil, icon_url \\ nil) do
     Req.post(@post_message_url,
       auth: {:bearer, access_token},
-      json: %{channel: channel, text: text}
+      json: %{channel: channel, text: text, username: username, icon_url: icon_url}
     )
     |> parse_response()
   end

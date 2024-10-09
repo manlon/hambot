@@ -4,8 +4,13 @@ defmodule HambotWeb.ApiController do
   alias Hambot.Commands
   alias Hambot.Slack
   alias Hambot.Slack.Team
+  alias Hambot.Codebro
 
   plug :auth_token
+
+  @codebros ["U02CYD8A6RE", "codebro"]
+  @codebro_icon "https://avatars.slack-edge.com/2021-08-22/2400869791558_95cf8760b54dfd0169e4_512.png"
+  @mention_pattern ~r/<@U[0-9A-Z]+>/
 
   def auth_token(conn, _options) do
     token = conn.body_params["token"]
@@ -64,6 +69,12 @@ defmodule HambotWeb.ApiController do
         nil
     end
 
+    if Enum.any?(@codebros, fn bro -> String.contains?(text, bro) end) do
+      message = Regex.replace(@mention_pattern, text, "")
+      bro_response = Codebro.send_chat(message)
+      send_message(team_id, channel, bro_response, "codebro", @codebro_icon)
+    end
+
     render(conn, "message.json", %{urls: urls})
   end
 
@@ -88,9 +99,9 @@ defmodule HambotWeb.ApiController do
     render(conn, "unknown_event.json", params)
   end
 
-  defp send_message(team_id, channel, text) do
+  defp send_message(team_id, channel, text, username \\ nil, icon_url \\ nil) do
     token = Team.get_access_token(team_id)
-    Slack.send_message(token, channel, text)
+    Slack.send_message(token, channel, text, username, icon_url)
   end
 
   defp reply_in_thread(team_id, channel, ts, msg) do
