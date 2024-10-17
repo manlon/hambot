@@ -50,32 +50,26 @@ defmodule HambotWeb.ApiController do
     render(conn, "message.json", %{})
   end
 
+  # DM
   def event(conn, %{
         "team_id" => team_id,
-        "event" => e = %{"type" => "message", "channel" => channel, "ts" => ts, "text" => text}
+        "event" =>
+          event = %{
+            "type" => "message",
+            "channel_type" => "im",
+            "channel" => channel,
+            "text" => text
+          }
       }) do
-    urls = Hambot.archive_urls(team_id, e)
+    Commands.respond_to_dm(team_id, channel, text)
+    process_message(conn, team_id, event)
+  end
 
-    for url <- urls do
-      Logger.debug("replying in thread #{channel} #{ts} #{url}")
-      reply_in_thread(team_id, channel, ts, url)
-    end
-
-    case Hambot.Puzzle.Connections.score(text) do
-      {:ok, score} ->
-        send_message(team_id, channel, "Your Connections score: #{score}")
-
-      _ ->
-        nil
-    end
-
-    if Enum.any?(@codebros, fn bro -> String.contains?(text, bro) end) do
-      message = Regex.replace(@mention_pattern, text, "")
-      bro_response = Codebro.send_chat(message)
-      send_message(team_id, channel, bro_response, "codebro", @codebro_icon)
-    end
-
-    render(conn, "message.json", %{urls: urls})
+  def event(conn, %{
+        "team_id" => team_id,
+        "event" => event = %{"type" => "message"}
+      }) do
+    process_message(conn, team_id, event)
   end
 
   def event(conn, %{
@@ -107,5 +101,34 @@ defmodule HambotWeb.ApiController do
   defp reply_in_thread(team_id, channel, ts, msg) do
     token = Team.get_access_token(team_id)
     Slack.reply_in_thread(token, channel, ts, msg)
+  end
+
+  defp process_message(
+         conn,
+         team_id,
+         event = %{"type" => "message", "channel" => channel, "ts" => ts, "text" => text}
+       ) do
+    urls = Hambot.archive_urls(team_id, event)
+
+    for url <- urls do
+      Logger.debug("replying in thread #{channel} #{ts} #{url}")
+      reply_in_thread(team_id, channel, ts, url)
+    end
+
+    case Hambot.Puzzle.Connections.score(text) do
+      {:ok, score} ->
+        send_message(team_id, channel, "Your Connections score: #{score}")
+
+      _ ->
+        nil
+    end
+
+    if Enum.any?(@codebros, fn bro -> String.contains?(text, bro) end) do
+      message = Regex.replace(@mention_pattern, text, "")
+      bro_response = Codebro.send_chat(message)
+      send_message(team_id, channel, bro_response, "codebro", @codebro_icon)
+    end
+
+    render(conn, "message.json", %{urls: urls})
   end
 end

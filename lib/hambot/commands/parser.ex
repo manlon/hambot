@@ -2,7 +2,7 @@ defmodule Hambot.Commands.Parser do
   import NimbleParsec
 
   space = ignore(times(string(" "), min: 1))
-  arglist = times(space |> utf8_string([{:not, ?\s}, {:not, ?\n}], min: 1), min: 1)
+  arg = utf8_string([{:not, ?\s}, {:not, ?\n}], min: 1)
 
   l_angle = string("<")
   r_angle = string(">")
@@ -25,7 +25,8 @@ defmodule Hambot.Commands.Parser do
     |> ignore(r_angle)
     |> post_traverse(:map_uri)
 
-  defparsec(:parse_mention, uname |> concat(arglist))
+  defparsec(:parse_command, arg |> repeat(space |> concat(arg)))
+  defparsec(:parse_mention, uname |> repeat(space |> concat(arg)))
   defparsec(:parse_link, choice([flat_link, fancy_link]))
 
   def map_uri(rest, [url], context, _line, _offset), do: map_uri(rest, url, context)

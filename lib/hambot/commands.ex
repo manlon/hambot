@@ -16,6 +16,13 @@ defmodule Hambot.Commands do
     end
   end
 
+  def respond_to_dm(team_id, channel, text) do
+    case Parser.parse_command(text) do
+      {:ok, args, _, _, _, _} ->
+        do_command(args, team_id, channel)
+    end
+  end
+
   def do_command(["domain", "add", domain], team_id, channel) do
     case Parser.parse_link(domain) do
       {:ok, [domain], _, _, _, _} ->
