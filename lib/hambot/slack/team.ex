@@ -14,6 +14,7 @@ defmodule Hambot.Slack.Team do
     timestamps(type: :utc_datetime)
 
     has_many :domains, Hambot.Archive.Domain
+    has_many :prefs, Hambot.Slack.TeamPref
   end
 
   @doc false
