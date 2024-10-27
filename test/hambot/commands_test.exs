@@ -11,7 +11,7 @@ defmodule Hambot.CommandsTest do
 
       Hambot.MockSlackApi
       |> expect(:send_message, fn team_arg, "C123", "added example.com" <> _, _opts ->
-        assert team_arg == team
+        assert team_arg == team.access_token
         :ok
       end)
 
@@ -32,7 +32,7 @@ defmodule Hambot.CommandsTest do
 
       Hambot.MockSlackApi
       |> expect(:send_message, fn team_arg, "C123", msg, _opts ->
-        assert team_arg == team
+        assert team_arg == team.access_token
         assert String.contains?(msg, "zeep.com\nzoop.com")
         :ok
       end)

@@ -6,11 +6,11 @@ defmodule Hambot.Slack do
   @callback send_message(%Team{}, String.t(), String.t(), list()) :: :ok | {:error, any()}
 
   def reply_in_thread(team = %Team{}, channel, ts, text, opts \\ []) do
-    impl().reply_in_thread(team, channel, ts, text, opts)
+    impl().reply_in_thread(team.access_token, channel, ts, text, opts)
   end
 
   def send_message(team = %Team{}, channel, text, opts \\ []) do
-    impl().send_message(team, channel, text, opts)
+    impl().send_message(team.access_token, channel, text, opts)
   end
 
   defp impl, do: Application.get_env(:hambot, :slack_api)
