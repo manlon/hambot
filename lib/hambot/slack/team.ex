@@ -4,6 +4,7 @@ defmodule Hambot.Slack.Team do
   alias Hambot.Repo
   alias Hambot.Archive.Domain
   alias Hambot.Puzzle.Result
+  alias Hambot.Slack.TeamPref
 
   schema "slack_teams" do
     field :name, :string
@@ -14,13 +15,14 @@ defmodule Hambot.Slack.Team do
     timestamps(type: :utc_datetime)
 
     has_many :domains, Hambot.Archive.Domain
-    has_many :prefs, Hambot.Slack.TeamPref
+    has_one :prefs, Hambot.Slack.TeamPref
   end
 
   @doc false
   def changeset(team, attrs) do
     team
     |> cast(attrs, [:name, :team_id, :access_token, :scope])
+    |> cast_assoc(:prefs, with: &TeamPref.changeset/2)
     |> validate_required([:name, :team_id, :access_token, :scope])
   end
 
@@ -47,6 +49,7 @@ defmodule Hambot.Slack.Team do
 
   def find_by_team_id(team_id) do
     Repo.get_by(__MODULE__, team_id: team_id)
+    |> with_prefs
   end
 
   def find_by_team_id!(team_id) do
@@ -55,6 +58,19 @@ defmodule Hambot.Slack.Team do
         raise "No team found with team_id: #{team_id}"
 
       team ->
+        team
+    end
+  end
+
+  def with_prefs(team) do
+    team = Repo.preload(team, :prefs)
+
+    case team.prefs do
+      nil ->
+        TeamPref.changeset(Ecto.build_assoc(team, :prefs), %{}) |> Repo.insert()
+        Repo.preload(team, :prefs, force: true)
+
+      _ ->
         team
     end
   end
@@ -84,5 +100,10 @@ defmodule Hambot.Slack.Team do
     else
       Domain.add_domain(team, domain)
     end
+  end
+
+  def update_pref(team, key, val) do
+    team.prefs
+    |> TeamPref.update_pref(key, val)
   end
 end

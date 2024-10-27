@@ -2,12 +2,14 @@ defmodule Hambot.Slack.TeamPref do
   use Ecto.Schema
   import Ecto.Changeset
   alias Hambot.Slack.Team
+  alias Hambot.Repo
 
   defmodule Prefs do
     use Ecto.Schema
 
+    @primary_key false
     embedded_schema do
-      field :archive_link_mode, Ecto.Enum, values: [:reply, :thread, :none]
+      field :archive_link_mode, Ecto.Enum, values: [:reply, :thread, :none], default: :reply
     end
 
     def changeset(prefs, attrs) do
@@ -34,5 +36,15 @@ defmodule Hambot.Slack.TeamPref do
     |> validate_required([:team_id])
     |> assoc_constraint(:team)
     |> cast_embed(:prefs)
+  end
+
+  def get(_tp = %__MODULE__{prefs: prefs}, key) do
+    get_in(prefs, [Access.key!(key)])
+  end
+
+  def update_pref(uprefs = %__MODULE__{}, key, val) do
+    uprefs
+    |> changeset(%{prefs: %{key => val}})
+    |> Repo.update()
   end
 end
