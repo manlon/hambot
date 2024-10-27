@@ -105,5 +105,28 @@ defmodule Hambot.Slack.Team do
   def update_pref(team, key, val) do
     team.prefs
     |> TeamPref.update_pref(key, val)
+    |> case do
+      {:ok, _} ->
+        :ok
+
+      {:error, cs} ->
+        errors =
+          Ecto.Changeset.traverse_errors(cs, &elem(&1, 0))
+          |> Enum.map(&pref_err_message/1)
+
+        {:error, Enum.join(errors, ", ")}
+    end
+  end
+
+  defp pref_err_message({:prefs, val}) when is_map(val) do
+    Enum.map(val, &pref_err_message/1)
+  end
+
+  defp pref_err_message({key, val}) when is_list(val) do
+    pref_err_message({key, Enum.join(val, ", ")})
+  end
+
+  defp pref_err_message({key, val}) when is_binary(val) do
+    "#{key} #{val}"
   end
 end

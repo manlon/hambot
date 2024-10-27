@@ -45,6 +45,26 @@ defmodule Hambot.Commands do
     send_message(team, channel, Enum.join(msgs, "\n"))
   end
 
+  def do_command(["team", "pref", "list"], team = %Team{}, channel) do
+    pref_lines =
+      team.prefs.prefs
+      |> Map.from_struct()
+      |> Enum.map(fn {k, v} -> "#{k}: #{v}" end)
+
+    msgs = ["here are the preferences for #{team.name}" | pref_lines]
+    send_message(team, channel, Enum.join(msgs, "\n"))
+  end
+
+  def do_command(["team", "pref", "set", name, val], team = %Team{}, channel) do
+    case Team.update_pref(team, name, val) do
+      :ok ->
+        send_message(team, channel, "set #{name} to #{val}")
+
+      {:error, msg} ->
+        send_message(team, channel, "error: #{msg}")
+    end
+  end
+
   def do_command(other_args, team = %Team{}, channel) do
     msgs = ["don't know how to" | other_args]
     send_message(team, channel, Enum.join(msgs, " "))

@@ -16,6 +16,8 @@ defmodule Hambot.Slack.TeamPref do
       prefs
       |> cast(attrs, [:archive_link_mode])
     end
+
+    # @thefields __MODULE__.__schema__(:fields)
   end
 
   schema "slack_team_prefs" do
@@ -42,9 +44,23 @@ defmodule Hambot.Slack.TeamPref do
     get_in(prefs, [Access.key!(key)])
   end
 
-  def update_pref(uprefs = %__MODULE__{}, key, val) do
-    uprefs
-    |> changeset(%{prefs: %{key => val}})
-    |> Repo.update()
+  @pref_fields Prefs.__struct__()
+               |> Map.from_struct()
+               |> Enum.map(fn {k, v} -> {to_string(k), v} end)
+               |> Enum.into(%{})
+
+  def update_pref(uprefs = %__MODULE__{}, key, val) when is_binary(key) do
+    cs =
+      uprefs
+      |> changeset(%{prefs: %{key => val}})
+
+    cs =
+      if cs.valid? and !Map.has_key?(@pref_fields, key) do
+        Ecto.Changeset.add_error(cs, :key, "unknown: #{key}")
+      else
+        cs
+      end
+
+    Repo.update(cs)
   end
 end
