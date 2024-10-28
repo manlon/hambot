@@ -9,7 +9,13 @@ defmodule Hambot.Commands do
 
     case Parser.parse_mention(text) do
       {:ok, [^user_id | rest], _, _, _, _} ->
-        do_command(rest, team, channel)
+        case do_command(rest, team, channel) do
+          :ok ->
+            :ok
+
+          {:error, :unknown} ->
+            respond_to_unknown(team, channel, "don't know how to #{Enum.join(rest, " ")}")
+        end
 
       _ ->
         respond_to_unknown(team, channel)
@@ -19,7 +25,13 @@ defmodule Hambot.Commands do
   def respond_to_dm(team = %Team{}, channel, text) do
     case Parser.parse_command(text) do
       {:ok, args, _, _, _, _} ->
-        do_command(args, team, channel)
+        case do_command(args, team, channel) do
+          :ok ->
+            :ok
+
+          {:error, :unknown} ->
+            respond_to_unknown(team, channel)
+        end
     end
   end
 
@@ -65,13 +77,14 @@ defmodule Hambot.Commands do
     end
   end
 
-  def do_command(other_args, team = %Team{}, channel) do
-    msgs = ["don't know how to" | other_args]
-    send_message(team, channel, Enum.join(msgs, " "))
+  def do_command(_args, %Team{}, _channel) do
+    {:error, :unknown}
   end
 
-  def respond_to_unknown(team = %Team{}, channel) do
-    send_message(team, channel, "ham")
+  def respond_to_unknown(team = %Team{}, channel, extra \\ nil) do
+    suffix = if extra, do: " (#{extra})", else: ""
+    msg = "ham#{suffix}"
+    send_message(team, channel, msg)
   end
 
   defp send_message(team = %Team{}, channel, msg) do
