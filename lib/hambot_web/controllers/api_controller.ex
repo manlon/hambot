@@ -38,6 +38,16 @@ defmodule HambotWeb.ApiController do
     render(conn, "message.json", %{urls: []})
   end
 
+  # don't reply to bots (incl us)
+  def event(conn, %{
+        "event" => %{
+          "type" => "message",
+          "subtype" => "bot_message"
+        }
+      }) do
+    render(conn, "message.json", %{})
+  end
+
   # don't reply to our own messages
   def event(conn, %{
         "authorizations" => [
