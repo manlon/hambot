@@ -111,7 +111,7 @@ defmodule HambotWeb.ApiController do
          }
        ) do
     team = Team.find_by_team_id!(team_id)
-    urls = Hambot.archive_urls(team_id, event)
+    urls = Hambot.archive_urls(team, event)
 
     for url <- urls do
       Logger.debug("replying in thread #{channel} #{ts} #{url}")
