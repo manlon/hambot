@@ -96,7 +96,7 @@ defmodule HambotWeb.ApiController do
   end
 
   defp send_message(team = %Team{}, channel, text, opts \\ []) do
-    Slack.send_message(team.access_token, channel, text, opts)
+    Slack.send_message(team, channel, text, opts)
   end
 
   defp process_message(
