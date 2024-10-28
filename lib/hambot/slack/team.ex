@@ -4,6 +4,7 @@ defmodule Hambot.Slack.Team do
   alias Hambot.Repo
   alias Hambot.Archive.Domain
   alias Hambot.Puzzle.Result
+  alias Hambot.Slack.TeamPref
 
   schema "slack_teams" do
     field :name, :string
@@ -14,12 +15,14 @@ defmodule Hambot.Slack.Team do
     timestamps(type: :utc_datetime)
 
     has_many :domains, Hambot.Archive.Domain
+    has_one :prefs, Hambot.Slack.TeamPref
   end
 
   @doc false
   def changeset(team, attrs) do
     team
     |> cast(attrs, [:name, :team_id, :access_token, :scope])
+    |> cast_assoc(:prefs, with: &TeamPref.changeset/2)
     |> validate_required([:name, :team_id, :access_token, :scope])
   end
 
@@ -46,21 +49,43 @@ defmodule Hambot.Slack.Team do
 
   def find_by_team_id(team_id) do
     Repo.get_by(__MODULE__, team_id: team_id)
+    |> with_prefs
   end
 
-  def find_by_team_id_with_domains(team_id) do
-    Repo.get_by(__MODULE__, team_id: team_id)
-    |> Repo.preload(:domains)
-  end
-
-  def get_access_token(team_id) do
+  def find_by_team_id!(team_id) do
     case find_by_team_id(team_id) do
       nil ->
         raise "No team found with team_id: #{team_id}"
 
       team ->
-        team.access_token
+        team
     end
+  end
+
+  def with_prefs(team) do
+    team = Repo.preload(team, :prefs)
+
+    case team.prefs do
+      nil ->
+        TeamPref.changeset(Ecto.build_assoc(team, :prefs), %{}) |> Repo.insert()
+        Repo.preload(team, :prefs, force: true)
+
+      _ ->
+        team
+    end
+  end
+
+  def find_by_team_id_with_domains(team_id) do
+    find_by_team_id!(team_id)
+    |> Repo.preload(:domains)
+  end
+
+  def with_domains(team = %__MODULE__{}) do
+    Repo.preload(team, :domains)
+  end
+
+  def get_access_token(team_id) do
+    find_by_team_id!(team_id).access_token
   end
 
   def add_domain(team = %__MODULE__{}, domain) do
@@ -75,5 +100,33 @@ defmodule Hambot.Slack.Team do
     else
       Domain.add_domain(team, domain)
     end
+  end
+
+  def update_pref(team, key, val) do
+    team.prefs
+    |> TeamPref.update_pref(key, val)
+    |> case do
+      {:ok, _} ->
+        :ok
+
+      {:error, cs} ->
+        errors =
+          Ecto.Changeset.traverse_errors(cs, &elem(&1, 0))
+          |> Enum.map(&pref_err_message/1)
+
+        {:error, Enum.join(errors, ", ")}
+    end
+  end
+
+  defp pref_err_message({:prefs, val}) when is_map(val) do
+    Enum.map(val, &pref_err_message/1)
+  end
+
+  defp pref_err_message({key, val}) when is_list(val) do
+    pref_err_message({key, Enum.join(val, ", ")})
+  end
+
+  defp pref_err_message({key, val}) when is_binary(val) do
+    "#{key} #{val}"
   end
 end

@@ -6,10 +6,8 @@ defmodule Hambot.Archive do
 
   def archive_urls(_, []), do: []
 
-  def archive_urls(team_id, urls) do
-    team = Team.find_by_team_id_with_domains(team_id)
-
-    case team do
+  def archive_urls(team = %Team{}, urls) do
+    case Team.with_domains(team) do
       nil ->
         []
 
@@ -55,12 +53,11 @@ defmodule Hambot.Archive do
     @archive_prefix <> url
   end
 
-  def add_domain(team_id, domain) do
-    Team.find_by_team_id(team_id)
-    |> Team.add_domain(domain)
+  def add_domain(team = %Team{}, domain) do
+    Team.add_domain(team, domain)
   end
 
-  def list_domains(team_id) do
-    Domain.list_domains(team_id)
+  def list_domains(team = %Team{}) do
+    Domain.list_domains(team)
   end
 end

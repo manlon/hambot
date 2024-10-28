@@ -37,8 +37,8 @@ defmodule Hambot.Archive.Domain do
     |> Enum.map(& &1.domain)
   end
 
-  def list_domains(team_id) do
-    Team.find_by_team_id_with_domains(team_id).domains
+  def list_domains(team = %Team{}) do
+    Team.with_domains(team).domains
     |> Enum.map(& &1.domain)
     |> Enum.sort()
   end
