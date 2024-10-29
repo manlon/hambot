@@ -9,7 +9,9 @@ defmodule Hambot.Slack.TeamPref do
 
     @primary_key false
     embedded_schema do
-      field :archive_link_mode, Ecto.Enum, values: [:reply, :thread, :none], default: :thread
+      field :archive_link_mode, Ecto.Enum,
+        values: [:reply, :thread, :context, :none],
+        default: :thread
     end
 
     def changeset(prefs, attrs) do

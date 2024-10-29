@@ -112,10 +112,6 @@ defmodule HambotWeb.ApiController do
     render(conn, "unknown_event.json", params)
   end
 
-  defp send_message(team = %Team{}, channel, text, opts \\ []) do
-    Slack.send_message(team, channel, text, opts)
-  end
-
   defp process_message(
          _conn,
          team_id,
@@ -138,7 +134,8 @@ defmodule HambotWeb.ApiController do
 
       case team.prefs.prefs.archive_link_mode do
         :thread -> send_message(team, channel, url, thread_ts: ts)
-        :reply -> send_message(team, channel, url, unfurl_links: false, unfurl_media: false)
+        :reply -> send_message(team, channel, url)
+        :context -> send_message_blocks(team, channel, [build_archive_link_context_block(url)])
         _ -> nil
       end
     end
@@ -161,5 +158,27 @@ defmodule HambotWeb.ApiController do
 
     nothing? = Enum.empty?(urls) && is_nil(cxn_result) && is_nil(codebro_result)
     {:ok, !nothing?}
+  end
+
+  defp send_message(team = %Team{}, channel, text, opts \\ []) do
+    opts = Keyword.merge(opts, unfurl_links: false, unfurl_media: false)
+    Slack.send_message_text(team, channel, text, opts)
+  end
+
+  defp send_message_blocks(team = %Team{}, channel, blocks, opts \\ []) do
+    opts = Keyword.merge(opts, unfurl_links: false, unfurl_media: false)
+    Slack.send_message_blocks(team, channel, blocks, opts)
+  end
+
+  defp build_archive_link_context_block(url) do
+    %{
+      type: "context",
+      elements: [
+        %{
+          type: "mrkdwn",
+          text: "here's an <#{url}|archived version>"
+        }
+      ]
+    }
   end
 end
