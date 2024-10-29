@@ -88,6 +88,6 @@ defmodule Hambot.Commands do
   end
 
   defp send_message(team = %Team{}, channel, msg) do
-    Slack.send_message(team, channel, msg)
+    Slack.send_message_text(team, channel, msg)
   end
 end
