@@ -127,16 +127,25 @@ defmodule HambotWeb.ApiController do
     team = Team.find_by_team_id!(team_id)
     urls = Hambot.archive_urls(team, event)
 
-    for url <- urls do
+    for {archive_url, orig_url} <- urls do
       Logger.debug(
-        "replying in thread #{channel} #{ts} #{url} #{team.prefs.prefs.archive_link_mode}"
+        "replying in thread #{channel} #{ts} #{archive_url} #{team.prefs.prefs.archive_link_mode}"
       )
 
       case team.prefs.prefs.archive_link_mode do
-        :thread -> send_message(team, channel, url, thread_ts: ts)
-        :reply -> send_message(team, channel, url)
-        :context -> send_message_blocks(team, channel, [build_archive_link_context_block(url)])
-        _ -> nil
+        :thread ->
+          send_message(team, channel, archive_url, thread_ts: ts)
+
+        :reply ->
+          send_message(team, channel, archive_url)
+
+        :context ->
+          send_message_blocks(team, channel, [
+            build_archive_link_context_block(archive_url, orig_url)
+          ])
+
+        _ ->
+          nil
       end
     end
 
@@ -170,13 +179,25 @@ defmodule HambotWeb.ApiController do
     Slack.send_message_blocks(team, channel, blocks, opts)
   end
 
-  defp build_archive_link_context_block(url) do
+  defp build_archive_link_context_block(url, orig_url) do
+    uri = URI.parse(orig_url)
+    domain = uri.host |> String.split(".") |> Enum.slice(-2, 2) |> Enum.join(".")
+
+    path =
+      if String.length(uri.path) >= 20 do
+        String.slice(uri.path, 0..17) <> "..."
+      else
+        uri.path
+      end
+
+    abbr = domain <> path
+
     %{
       type: "context",
       elements: [
         %{
           type: "mrkdwn",
-          text: "here's an <#{url}|archived version>"
+          text: "here's an <#{url}|archived version of #{abbr}>"
         }
       ]
     }

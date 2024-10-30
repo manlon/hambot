@@ -15,7 +15,7 @@ defmodule Hambot.Archive do
         archive_domains = team.domains |> Enum.map(& &1.domain)
 
         for url <- urls, should_archive?(url, archive_domains) do
-          make_archive_url(url)
+          {make_archive_url(url), url}
         end
     end
   end
