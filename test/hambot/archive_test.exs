@@ -39,6 +39,19 @@ defmodule Hambot.ArchiveTest do
       assert length(Archive.archive_urls(team, ["https://zeep.zop.bleep.com/zoop?zop=zeep"])) == 1
 
       assert length(Archive.archive_urls(team, ["https://espn.com/zoop?zop=zeep"])) == 0
+
+      arc1 = "https://zeep.zop.bleep.com/zoop?zop=zeep"
+      arc2 = "https://zeep.zop.bleep.com/bop?zop=zeep"
+      not_arc = "https://espn.com/zoop?zop=zeep"
+      result = Archive.archive_urls(team, [arc1, arc2, not_arc])
+
+      assert length(result) == 2
+
+      assert {"https://archive.today/newest/https://zeep.zop.bleep.com/zoop", arc1} ==
+               Enum.at(result, 0)
+
+      assert {"https://archive.today/newest/https://zeep.zop.bleep.com/bop", arc2} ==
+               Enum.at(result, 1)
     end
 
     test "dedupe" do
