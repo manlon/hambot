@@ -29,6 +29,12 @@ defmodule HambotWeb.Router do
     get "/event", ApiController, :event
   end
 
+  scope "/wikify", HambotWeb do
+    pipe_through :browser
+    get "/", WikifyController, :index
+    post "/", WikifyController, :index
+  end
+
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:hambot, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put

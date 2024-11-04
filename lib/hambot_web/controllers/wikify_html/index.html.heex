@@ -1,0 +1,70 @@
+<%= if !Enum.empty?(@words) do %>
+  <div class="grid grid-cols-1 items-start justify-center h-screen bg-[#d5b3a3] grid-rows-[auto,1fr]">
+    <ul class="flex text-sm font-medium text-center text-gray-500 border-b border-gray-200 overflow-x-auto whitespace-nowrap">
+      <%= for {word, i} <- Enum.with_index(@words) do %>
+        <li class="me-2">
+          <a
+            href={"https://en.wiktionary.org/wiki/#{word}#Chinese"}
+            target="wiki_frame"
+            aria-current="page"
+            class="font-bold text-xl inline-block p-4 data-[selected]:text-blue-600 rounded-t-lg data-[selected]:bg-gray-100 hover:bg-gray-50"
+            data-selected={i == 0}
+          >
+            <%= word %>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+    <div class="h-full">
+      <iframe
+        name="wiki_frame"
+        src={"https://en.wiktionary.org/wiki/#{hd(@words)}#Chinese"}
+        class="w-full h-full"
+      >
+        a bloo bloo bloo
+      </iframe>
+    </div>
+  </div>
+<% else %>
+  <div class="grid grid-cols-1 items-start justify-center h-screen bg-[#d5b3a3]">
+    <form method="post" class="justify-self-center self-center">
+      <label for="Description" class="block text-sm"></label>
+      <textarea
+        placeholder="words..."
+        name="words"
+        class="block  mt-2 w-full placeholder-gray-400/70  rounded-lg border border-gray-200 bg-white px-4 h-32 py-2.5 text-gray-700 focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40 "
+      ></textarea>
+      <div class="justify-self-center self-center">
+        <button class="mt-4 px-6 py-2 font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-80">
+          Wiki
+        </button>
+      </div>
+      <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+    </form>
+  </div>
+<% end %>
+
+<script>
+  window.addEventListener('click', event => {
+    // Check if the clicked element is an anchor with target="wiki_frame"
+    const link = event.target.closest('a[target="wiki_frame"]');
+
+    if (link) {
+      // event.preventDefault(); // Prevent the default link behavior if needed
+
+      document.querySelectorAll('a[data-selected]').forEach(link => {
+        // Remove the data-selected attribute from each <a> element
+        link.removeAttribute('data-selected');
+      });
+
+      window.beep = link
+      link.setAttribute('data-selected', true);
+
+      // Log or handle the click event
+      console.log(`Link clicked: ${link.href}`);
+
+      // Add your custom behavior here
+      // For example, open in a modal, log, or other actions
+    }
+  });
+</script>
