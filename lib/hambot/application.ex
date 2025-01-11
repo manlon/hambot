@@ -19,6 +19,8 @@ defmodule Hambot.Application do
       {Finch, name: Hambot.Finch},
       # Start a worker by calling: Hambot.Worker.start_link(arg)
       # {Hambot.Worker, arg},
+      {Adbc.Database, driver: :duckdb, process_options: [name: Hambot.DuckDB]},
+      {Adbc.Connection, database: Hambot.DuckDB, process_options: [name: Hambot.DuckConn]},
       {Task.Supervisor, name: Hambot.CodebroTaskSupervisor},
       {Hambot.Codebro, []},
       # Start to serve requests, typically the last entry

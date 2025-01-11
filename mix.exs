@@ -54,7 +54,9 @@ defmodule Hambot.MixProject do
       {:req, "~> 0.4.4"},
       {:nimble_parsec, "~> 1.4"},
       {:mox, "~> 1.1", only: :test},
-      {:oban, "~> 2.18"}
+      {:oban, "~> 2.18"},
+      {:adbc, ">= 0.7.0"},
+      {:explorer, ">= 0.10.1"}
     ]
   end
 

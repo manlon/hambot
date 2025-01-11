@@ -71,3 +71,5 @@ config :hambot, Oban,
   engine: Oban.Engines.Lite,
   queues: [default: 10],
   repo: Hambot.Repo
+
+config :adbc, :drivers, [:duckdb]
