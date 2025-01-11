@@ -12,6 +12,7 @@ defmodule Hambot.Application do
     children = [
       HambotWeb.Telemetry,
       Hambot.Repo,
+      {Oban, Application.fetch_env!(:hambot, Oban)},
       {DNSCluster, query: Application.get_env(:hambot, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Hambot.PubSub},
       # Start the Finch HTTP client for sending emails

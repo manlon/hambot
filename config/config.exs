@@ -66,3 +66,8 @@ config :phoenix, :json_library, Jason
 import_config "#{config_env()}.exs"
 
 config :hambot, :slack_api, Hambot.Slack.HTTPClient
+
+config :hambot, Oban,
+  engine: Oban.Engines.Lite,
+  queues: [default: 10],
+  repo: Hambot.Repo
