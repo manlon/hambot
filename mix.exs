@@ -56,7 +56,8 @@ defmodule Hambot.MixProject do
       {:mox, "~> 1.1", only: :test},
       {:oban, "~> 2.18"},
       {:adbc, ">= 0.7.0"},
-      {:explorer, ">= 0.10.1"}
+      {:explorer, ">= 0.10.1"},
+      {:tz, ">= 0.28.1"}
     ]
   end
 

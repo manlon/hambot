@@ -73,3 +73,5 @@ config :hambot, Oban,
   repo: Hambot.Repo
 
 config :adbc, :drivers, [:duckdb]
+
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
