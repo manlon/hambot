@@ -53,7 +53,11 @@ defmodule Hambot.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:req, "~> 0.4.4"},
       {:nimble_parsec, "~> 1.4"},
-      {:mox, "~> 1.1", only: :test}
+      {:mox, "~> 1.1", only: :test},
+      {:oban, "~> 2.18"},
+      {:adbc, ">= 0.7.0"},
+      {:explorer, ">= 0.10.1"},
+      {:tz, ">= 0.28.1"}
     ]
   end
 

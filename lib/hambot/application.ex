@@ -12,16 +12,20 @@ defmodule Hambot.Application do
     children = [
       HambotWeb.Telemetry,
       Hambot.Repo,
+      {Oban, Application.fetch_env!(:hambot, Oban)},
       {DNSCluster, query: Application.get_env(:hambot, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Hambot.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Hambot.Finch},
       # Start a worker by calling: Hambot.Worker.start_link(arg)
       # {Hambot.Worker, arg},
+      {Adbc.Database, driver: :duckdb, process_options: [name: Hambot.DuckDB]},
+      {Adbc.Connection, database: Hambot.DuckDB, process_options: [name: Hambot.DuckConn]},
       {Task.Supervisor, name: Hambot.CodebroTaskSupervisor},
       {Hambot.Codebro, []},
       # Start to serve requests, typically the last entry
-      HambotWeb.Endpoint
+      HambotWeb.Endpoint,
+      Task.child_spec(fn -> Hambot.GameChat.Kraken.rebuild_schedule() end)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

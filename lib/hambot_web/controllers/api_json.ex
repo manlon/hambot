@@ -1,5 +1,6 @@
 defmodule HambotWeb.ApiJSON do
   require Logger
+
   def render("index.json", _assigns) do
     %{data: %{message: "Welcome to Hambot"}}
   end

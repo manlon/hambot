@@ -18,3 +18,11 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+config :hambot, Hambot.GameChat.Kraken,
+  channels: [
+    # ham/cincinnati
+    {"T0G4BT3K7", "G0GQQ7D62"},
+    # space/sport
+    {"T0LET23FG", "C15HL8WSD"}
+  ]

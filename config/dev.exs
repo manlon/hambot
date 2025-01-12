@@ -2,10 +2,10 @@ import Config
 
 # Configure your database
 config :hambot, Hambot.Repo,
-database: Path.expand("../hambot_dev.db", Path.dirname(__ENV__.file)),
-pool_size: 5,
-stacktrace: true,
-show_sensitive_data_on_connection_error: true
+  database: Path.expand("../hambot_dev.db", Path.dirname(__ENV__.file)),
+  pool_size: 5,
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -77,3 +77,11 @@ config :phoenix_live_view, :debug_heex_annotations, true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+config :hambot, Hambot.GameChat.Kraken,
+  channels: [
+    # ham/cincinnati
+    {"T0G4BT3K7", "G0GQQ7D62"}
+    # space/sport
+    # {"T0LET23FG", "C15HL8WSD"}
+  ]
