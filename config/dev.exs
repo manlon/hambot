@@ -77,3 +77,11 @@ config :phoenix_live_view, :debug_heex_annotations, true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+config :hambot, Hambot.GameChat.Kraken,
+  channels: [
+    # ham/cincinnati
+    {"T0G4BT3K7", "G0GQQ7D62"}
+    # space/sport
+    # {"T0LET23FG", "C15HL8WSD"}
+  ]
