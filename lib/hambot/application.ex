@@ -24,7 +24,8 @@ defmodule Hambot.Application do
       {Task.Supervisor, name: Hambot.CodebroTaskSupervisor},
       {Hambot.Codebro, []},
       # Start to serve requests, typically the last entry
-      HambotWeb.Endpoint
+      HambotWeb.Endpoint,
+      Task.child_spec(fn -> Hambot.GameChat.Kraken.rebuild_schedule() end)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
