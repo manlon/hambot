@@ -48,8 +48,14 @@ defmodule Hambot.Slack.Team do
   end
 
   def find_by_team_id(team_id) do
-    Repo.get_by(__MODULE__, team_id: team_id)
-    |> with_prefs
+    case Repo.get_by(__MODULE__, team_id: team_id) do
+      nil ->
+        nil
+
+      team ->
+        team
+        |> with_prefs
+    end
   end
 
   def find_by_team_id!(team_id) do
