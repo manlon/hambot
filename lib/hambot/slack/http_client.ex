@@ -70,7 +70,7 @@ defmodule Hambot.Slack.HTTPClient do
     end
   end
 
-  defp parse_response({:ok, %{status: 200, body: %{"ok" => true}}}), do: :ok
+  defp parse_response({:ok, %{status: 200, body: %{"ok" => true, "ts" => ts}}}), do: {:ok, ts}
 
   defp parse_response({:ok, %{status: 200, body: %{"ok" => false, "error" => err}}}),
     do: {:error, err}
