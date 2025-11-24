@@ -10,7 +10,7 @@ defmodule Hambot.Commands do
     case Parser.parse_mention(text) do
       {:ok, [^user_id | rest], _, _, _, _} ->
         case do_command(rest, team, channel) do
-          :ok ->
+          {:ok, _} ->
             :ok
 
           {:error, :unknown} ->
@@ -26,7 +26,7 @@ defmodule Hambot.Commands do
     case Parser.parse_command(text) do
       {:ok, args, _, _, _, _} ->
         case do_command(args, team, channel) do
-          :ok ->
+          {:ok, _} ->
             :ok
 
           {:error, :unknown} ->

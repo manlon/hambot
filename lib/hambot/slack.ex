@@ -2,9 +2,9 @@ defmodule Hambot.Slack do
   alias Hambot.Slack.Team
 
   @callback reply_in_thread(%Team{}, String.t(), String.t(), String.t()) ::
-              :ok | {:error, any()}
-  @callback send_message_text(%Team{}, String.t(), String.t(), list()) :: :ok | {:error, any()}
-  @callback send_message_blocks(%Team{}, String.t(), String.t(), list()) :: :ok | {:error, any()}
+              {:ok, String.t()} | {:error, any()}
+  @callback send_message_text(%Team{}, String.t(), String.t(), list()) :: {:ok, String.t()} | {:error, any()}
+  @callback send_message_blocks(%Team{}, String.t(), String.t(), list()) :: {:ok, String.t()} | {:error, any()}
 
   def reply_in_thread(team = %Team{}, channel, ts, text, opts \\ []) do
     impl().reply_in_thread(team.access_token, channel, ts, text, opts)
