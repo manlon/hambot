@@ -3,40 +3,14 @@ defmodule Hambot.GameChat.Kraken do
   use Oban.Worker, queue: :default
   require Ecto.Query
 
-  defmodule TimeParser do
-    import NimbleParsec
-
-    time =
-      integer(min: 1, max: 2)
-      |> ignore(string(":"))
-      |> integer(2)
-      |> ignore(string(" "))
-      |> choice([string("AM"), string("PM")])
-
-    defparsec(:parse, time)
-
-    def parse_time(str) do
-      case parse(str) do
-        {:ok, [h, m, ap], _, _, _, _} ->
-          h = if ap == "PM" and h != 12, do: h + 12, else: h
-          Time.new!(h, m, 0)
-
-        _ ->
-          nil
-      end
-    end
-  end
-
-  @eastern_time "America/New_York"
-  @nhl_schedule_file "priv/datasets/nhl_schedule_2425.csv"
+  @nhl_schedule_file "priv/datasets/kraken_schedule_2526.csv"
   def nhl_schedule_data do
     fname = Application.app_dir(:hambot, @nhl_schedule_file)
 
     query = """
     select * from '#{fname}'
-    where START_DATE >= now() - interval 1 day
-    and SUBJECT like '%Seattle%'
-    order by START_DATE
+    where start at time zone 'utc' >= now() - interval 1 hour
+    order by start
     """
 
     Explorer.DataFrame.from_query!(Hambot.DuckConn, query, [])
@@ -62,23 +36,12 @@ defmodule Hambot.GameChat.Kraken do
 
     jobs =
       for game <- games,
-          time = nhl_game_to_date_time(game),
+          time = DateTime.from_naive!(game["start"], "UTC"),
           remind_time = DateTime.add(time, -15, :minute) do
-        new(%{desc: game["SUBJECT"], time: time}, scheduled_at: remind_time)
+        new(%{desc: game["summary"], time: time}, scheduled_at: remind_time)
       end
 
     Oban.insert_all(jobs)
-  end
-
-  def nhl_game_to_date_time(%{"START_DATE" => dt, "START_TIME_ET" => t}) do
-    case TimeParser.parse_time(t) do
-      nil ->
-        nil
-
-      time ->
-        NaiveDateTime.new!(dt, time)
-        |> DateTime.from_naive!(@eastern_time)
-    end
   end
 
   @impl Oban.Worker

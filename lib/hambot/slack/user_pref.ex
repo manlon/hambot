@@ -1,6 +1,7 @@
 defmodule Hambot.Slack.UserPref do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Hambot.Slack.Team
 
   defmodule Prefs do
     use Ecto.Schema

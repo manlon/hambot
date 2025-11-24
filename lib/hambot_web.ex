@@ -43,7 +43,7 @@ defmodule HambotWeb do
         layouts: [html: HambotWeb.Layouts]
 
       import Plug.Conn
-      import HambotWeb.Gettext
+      use Gettext, backend: HambotWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -85,7 +85,7 @@ defmodule HambotWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import HambotWeb.CoreComponents
-      import HambotWeb.Gettext
+      use Gettext, backend: HambotWeb.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

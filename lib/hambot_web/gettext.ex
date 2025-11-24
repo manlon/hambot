@@ -20,5 +20,5 @@ defmodule HambotWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :hambot
+  use Gettext.Backend, otp_app: :hambot
 end
