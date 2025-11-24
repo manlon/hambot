@@ -9,7 +9,7 @@ defmodule Hambot.GameChat.Kraken do
 
     query = """
     select * from '#{fname}'
-    where start >= now() - interval 1 hour
+    where start at time zone 'utc' >= now() - interval 1 hour
     order by start
     """
 
