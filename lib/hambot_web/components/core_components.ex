@@ -17,7 +17,7 @@ defmodule HambotWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import HambotWeb.Gettext
+  use Gettext, backend: HambotWeb.Gettext
 
   @doc """
   Renders a modal.
