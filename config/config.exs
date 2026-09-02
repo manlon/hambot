@@ -75,3 +75,5 @@ config :hambot, Oban,
 config :adbc, :drivers, [:duckdb]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+
+config :hambot, :fxtwitter_api, Hambot.Tweet.FxTwitter.HTTPClient

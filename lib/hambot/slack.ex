@@ -3,8 +3,10 @@ defmodule Hambot.Slack do
 
   @callback reply_in_thread(String.t(), String.t(), String.t(), String.t(), keyword()) ::
               {:ok, String.t()} | {:error, any()}
-  @callback send_message_text(String.t(), String.t(), String.t(), keyword()) :: {:ok, String.t()} | {:error, any()}
-  @callback send_message_blocks(String.t(), String.t(), list(), keyword()) :: {:ok, String.t()} | {:error, any()}
+  @callback send_message_text(String.t(), String.t(), String.t(), keyword()) ::
+              {:ok, String.t()} | {:error, any()}
+  @callback send_message_blocks(String.t(), String.t(), list(), keyword()) ::
+              {:ok, String.t()} | {:error, any()}
 
   def reply_in_thread(team = %Team{}, channel, ts, text, opts \\ []) do
     impl().reply_in_thread(team.access_token, channel, ts, text, opts)

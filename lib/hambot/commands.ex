@@ -4,7 +4,8 @@ defmodule Hambot.Commands do
   alias Hambot.Slack.Team
   alias Hambot.Archive
 
-  @spec respond_to_mention(Team.t(), String.t(), String.t(), String.t()) :: :ok | {:ok, String.t()}
+  @spec respond_to_mention(Team.t(), String.t(), String.t(), String.t()) ::
+          :ok | {:ok, String.t()}
   def respond_to_mention(team = %Team{}, user_id, channel, text) do
     text = String.trim(text)
 
@@ -37,7 +38,8 @@ defmodule Hambot.Commands do
     end
   end
 
-  @spec do_command(list(String.t()), Team.t(), String.t()) :: {:ok, String.t()} | {:error, :unknown}
+  @spec do_command(list(String.t()), Team.t(), String.t()) ::
+          {:ok, String.t()} | {:error, :unknown}
   def do_command(["domain", "add", domain], team = %Team{}, channel) do
     case Parser.parse_link(domain) do
       {:ok, [domain], _, _, _, _} ->
