@@ -9,6 +9,7 @@ defmodule Hambot.Slack.TeamPref do
 
     @type t :: %__MODULE__{
             archive_link_mode: :reply | :thread | :context | :none,
+            tweet_link_mode: :reply | :thread | :context | :none,
             game_chats: [String.t()] | nil
           }
 
@@ -18,12 +19,16 @@ defmodule Hambot.Slack.TeamPref do
         values: [:reply, :thread, :context, :none],
         default: :thread
 
+      field :tweet_link_mode, Ecto.Enum,
+        values: [:reply, :thread, :context, :none],
+        default: :context
+
       field :game_chats, {:array, :string}
     end
 
     def changeset(prefs, attrs) do
       prefs
-      |> cast(attrs, [:archive_link_mode, :game_chats])
+      |> cast(attrs, [:archive_link_mode, :tweet_link_mode, :game_chats])
     end
 
     # @thefields __MODULE__.__schema__(:fields)

@@ -5,6 +5,8 @@ defmodule HambotWeb.ApiController do
   alias Hambot.Slack
   alias Hambot.Slack.Team
   alias Hambot.Codebro
+  alias Hambot.Tweet
+  alias HambotWeb.TweetLink
 
   plug :auth_token
 
@@ -149,6 +151,15 @@ defmodule HambotWeb.ApiController do
       end
     end
 
+    tweet_results =
+      if team.prefs.prefs.tweet_link_mode == :none do
+        []
+      else
+        for {status_id, _orig_url} <- Tweet.status_links(Hambot.collect_urls(event)),
+            result = post_tweet_link(team, channel, ts, status_id),
+            do: result
+      end
+
     cxn_result =
       case Hambot.Puzzle.Connections.score(text) do
         {:ok, score} ->
@@ -165,8 +176,52 @@ defmodule HambotWeb.ApiController do
         send_message(team, channel, bro_response, username: "codebro", icon_url: @codebro_icon)
       end
 
-    nothing? = Enum.empty?(urls) && is_nil(cxn_result) && is_nil(codebro_result)
+    nothing? =
+      Enum.empty?(urls) && Enum.empty?(tweet_results) && is_nil(cxn_result) &&
+        is_nil(codebro_result)
+
     {:ok, !nothing?}
+  end
+
+  # A dead viewer link is worse than none, so the tweet is fetched before
+  # anything is posted.
+  defp post_tweet_link(team, channel, ts, status_id) do
+    case Tweet.fetch(status_id) do
+      {:ok, status} ->
+        viewer_url = TweetLink.viewer_url(status_id)
+
+        case team.prefs.prefs.tweet_link_mode do
+          :thread ->
+            send_message(team, channel, viewer_url, thread_ts: ts)
+
+          :reply ->
+            send_message(team, channel, viewer_url)
+
+          :context ->
+            send_message_blocks(team, channel, [
+              build_tweet_link_context_block(viewer_url, status)
+            ])
+
+          _ ->
+            nil
+        end
+
+      {:error, reason} ->
+        Logger.info("not linking tweet #{status_id}: #{inspect(reason)}")
+        nil
+    end
+  end
+
+  defp build_tweet_link_context_block(viewer_url, status) do
+    %{
+      type: "context",
+      elements: [
+        %{
+          type: "mrkdwn",
+          text: "here's a <#{viewer_url}|login-free view of @#{status.author.handle}'s post>"
+        }
+      ]
+    }
   end
 
   defp send_message(team = %Team{}, channel, text, opts \\ []) do
