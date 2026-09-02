@@ -43,3 +43,9 @@ npm-debug.log
 hambot_*.db
 hambot_*.db-wal
 hambot_*.db-shm
+
+# Dialyzer PLT cache (large, machine-specific; rebuilt by `mix dialyzer`).
+/priv/plts/
+
+# Per-user Claude Code settings.
+.claude/settings.local.json
