@@ -7,6 +7,15 @@ defmodule Hambot.Archive.Domain do
 
   @domain_regex ~r/^([a-z0-9-]+\.)+[a-z]{2,}$/
 
+  @type t :: %__MODULE__{
+          id: integer() | nil,
+          domain: String.t(),
+          team_id: integer(),
+          team: Team.t() | Ecto.Association.NotLoaded.t(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   schema "archive_domains" do
     field :domain, :string
     belongs_to :team, Team

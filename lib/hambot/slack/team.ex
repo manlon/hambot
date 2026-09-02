@@ -6,6 +6,18 @@ defmodule Hambot.Slack.Team do
   alias Hambot.Puzzle.Result
   alias Hambot.Slack.TeamPref
 
+  @type t :: %__MODULE__{
+          id: integer() | nil,
+          name: String.t(),
+          scope: String.t(),
+          team_id: String.t(),
+          access_token: String.t(),
+          domains: [Domain.t()] | Ecto.Association.NotLoaded.t(),
+          prefs: TeamPref.t() | Ecto.Association.NotLoaded.t(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   schema "slack_teams" do
     field :name, :string
     field :scope, :string

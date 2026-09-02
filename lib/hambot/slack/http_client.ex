@@ -4,6 +4,7 @@ defmodule Hambot.Slack.HTTPClient do
   @post_message_url "https://slack.com/api/chat.postMessage"
   @oauth_access_url "https://slack.com/api/oauth.v2.access"
 
+  @spec post_message(String.t(), String.t(), keyword()) :: {:ok, String.t()} | {:error, any()}
   defp post_message(access_token, channel, opts) do
     if !Keyword.has_key?(opts, :text) and !Keyword.has_key?(opts, :blocks) do
       raise ArgumentError, "text or blocks must be provided"
@@ -31,6 +32,9 @@ defmodule Hambot.Slack.HTTPClient do
     |> parse_response()
   end
 
+  @impl true
+  @spec reply_in_thread(String.t(), String.t(), String.t(), String.t(), keyword()) ::
+          {:ok, String.t()} | {:error, any()}
   def reply_in_thread(access_token, channel, ts, text, opts \\ []) do
     opts =
       opts
@@ -40,6 +44,9 @@ defmodule Hambot.Slack.HTTPClient do
     post_message(access_token, channel, opts)
   end
 
+  @impl true
+  @spec send_message_text(String.t(), String.t(), String.t(), keyword()) ::
+          {:ok, String.t()} | {:error, any()}
   def send_message_text(access_token, channel, text, opts \\ []) do
     opts =
       opts
@@ -48,6 +55,9 @@ defmodule Hambot.Slack.HTTPClient do
     post_message(access_token, channel, opts)
   end
 
+  @impl true
+  @spec send_message_blocks(String.t(), String.t(), list(), keyword()) ::
+          {:ok, String.t()} | {:error, any()}
   def send_message_blocks(access_token, channel, blocks, opts \\ []) do
     opts =
       opts

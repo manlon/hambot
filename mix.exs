@@ -10,7 +10,8 @@ defmodule Hambot.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       listeners: [Phoenix.CodeReloader],
-      deps: deps()
+      deps: deps(),
+      dialyzer: [plt_file: {:no_warn, "priv/plts/dialyzer.plt"}]
     ]
   end
 
@@ -55,6 +56,8 @@ defmodule Hambot.MixProject do
       {:req, "~> 0.5.16"},
       {:nimble_parsec, "~> 1.4"},
       {:mox, "~> 1.1", only: :test},
+      {:stream_data, "~> 1.1", only: :test},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:oban, "~> 2.18"},
       {:adbc, ">= 0.7.0"},
       {:explorer, ">= 0.10.1"},

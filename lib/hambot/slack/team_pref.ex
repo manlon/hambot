@@ -7,20 +7,36 @@ defmodule Hambot.Slack.TeamPref do
   defmodule Prefs do
     use Ecto.Schema
 
+    @type t :: %__MODULE__{
+            archive_link_mode: :reply | :thread | :context | :none,
+            game_chats: [String.t()] | nil
+          }
+
     @primary_key false
     embedded_schema do
       field :archive_link_mode, Ecto.Enum,
         values: [:reply, :thread, :context, :none],
         default: :thread
+
+      field :game_chats, {:array, :string}
     end
 
     def changeset(prefs, attrs) do
       prefs
-      |> cast(attrs, [:archive_link_mode])
+      |> cast(attrs, [:archive_link_mode, :game_chats])
     end
 
     # @thefields __MODULE__.__schema__(:fields)
   end
+
+  @type t :: %__MODULE__{
+          id: integer() | nil,
+          team_id: integer(),
+          team: Team.t() | Ecto.Association.NotLoaded.t(),
+          prefs: Prefs.t(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
 
   schema "slack_team_prefs" do
     belongs_to :team, Team
