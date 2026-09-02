@@ -12,7 +12,7 @@ defmodule HambotWeb.TweetControllerTest do
     Hambot.MockFxTwitter
     |> expect(:fetch, fn "2095117900965130416" -> {:ok, fxtwitter_tweet(:quote_with_video)} end)
 
-    conn = get(conn, ~p"/t/2095117900965130416")
+    conn = get(conn, ~p"/t/#{TweetLink.token("2095117900965130416")}")
     html = html_response(conn, 200)
     doc = Floki.parse_document!(html)
 
@@ -37,7 +37,7 @@ defmodule HambotWeb.TweetControllerTest do
     Hambot.MockFxTwitter
     |> expect(:fetch, fn "20" -> {:ok, fxtwitter_tweet(:plain)} end)
 
-    html = conn |> get(~p"/t/20") |> html_response(200)
+    html = conn |> get(~p"/t/#{TweetLink.token("20")}") |> html_response(200)
     assert html =~ "just setting up my twttr"
     refute html =~ "<video"
   end
@@ -46,23 +46,32 @@ defmodule HambotWeb.TweetControllerTest do
     Hambot.MockFxTwitter
     |> expect(:fetch, fn "1234567890" -> {:error, :not_found} end)
 
-    assert conn |> get(~p"/t/1234567890") |> html_response(404) =~ "Not Found"
+    assert conn |> get(~p"/t/#{TweetLink.token("1234567890")}") |> html_response(404) =~
+             "Not Found"
   end
 
-  test "404s for a malformed id without calling the API", %{conn: conn} do
-    assert conn |> get(~p"/t/not-an-id") |> html_response(404) =~ "Not Found"
+  test "404s for anything but a hambot-minted token, without calling the API", %{conn: conn} do
+    tampered = TweetLink.token("20") |> String.replace(~r/.{4}\z/, "AAAA")
+
+    for param <- ["not-an-id", "20", "2095117900965130416", tampered] do
+      assert conn |> get(~p"/t/#{param}") |> html_response(404) =~ "Not Found"
+    end
   end
 
   test "502s when the API is unavailable", %{conn: conn} do
     Hambot.MockFxTwitter
     |> expect(:fetch, fn "20" -> {:error, %Req.TransportError{reason: :timeout}} end)
 
-    assert conn |> get(~p"/t/20") |> html_response(502)
+    assert conn |> get(~p"/t/#{TweetLink.token("20")}") |> html_response(502)
   end
 
-  test "viewer_url/1 points at the viewer route", %{conn: _conn} do
-    assert TweetLink.viewer_url("20") =~ ~r{\Ahttp://localhost(:\d+)?/t/20\z}
-    assert TweetLink.status_id("20") == {:ok, "20"}
-    assert TweetLink.status_id("20x") == {:error, :invalid}
+  test "viewer_url/1 carries an encrypted id that only status_id/1 can read", %{conn: _conn} do
+    assert [_, token] =
+             Regex.run(~r{\Ahttp://localhost(?::\d+)?/t/([\w.-]+)\z}, TweetLink.viewer_url("20"))
+
+    refute token =~ "20"
+    assert TweetLink.status_id(token) == {:ok, "20"}
+    assert TweetLink.status_id("20") == {:error, :invalid}
+    assert TweetLink.status_id("") == {:error, :invalid}
   end
 end

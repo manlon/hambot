@@ -6,6 +6,7 @@ defmodule HambotWeb.ApiControllerTest do
   import Hambot.TeamFixtures
 
   alias Hambot.Slack.Team
+  alias HambotWeb.TweetLink
 
   setup :verify_on_exit!
 
@@ -53,7 +54,8 @@ defmodule HambotWeb.ApiControllerTest do
         assert token == team.access_token
         assert opts[:unfurl_links] == false
         assert [%{type: "context", elements: [%{type: "mrkdwn", text: text}]}] = blocks
-        assert text =~ ~r{<http://localhost(:\d+)?/t/2095117900965130416\|}
+        assert [_, token] = Regex.run(~r{<http://localhost(?::\d+)?/t/([\w.-]+)\|}, text)
+        assert TweetLink.status_id(token) == {:ok, "2095117900965130416"}
         assert text =~ "@DPD_'s post"
         {:ok, "1700000000.000200"}
       end)
@@ -70,7 +72,8 @@ defmodule HambotWeb.ApiControllerTest do
 
       Hambot.MockSlackApi
       |> expect(:send_message_text, fn _token, "C123", text, opts ->
-        assert text =~ ~r{\Ahttp://localhost(:\d+)?/t/20\z}
+        assert [_, token] = Regex.run(~r{\Ahttp://localhost(?::\d+)?/t/([\w.-]+)\z}, text)
+        assert TweetLink.status_id(token) == {:ok, "20"}
         assert opts[:thread_ts] == "1700000000.000100"
         {:ok, "1700000000.000200"}
       end)
