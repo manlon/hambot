@@ -19,6 +19,7 @@ defmodule HambotWeb.Router do
 
     get "/", PageController, :home
     get "/slack_auth", SlackAuthController, :index
+    get "/t/:id", TweetController, :show
   end
 
   # Other scopes may use custom stacks.
