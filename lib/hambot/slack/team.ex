@@ -83,9 +83,15 @@ defmodule Hambot.Slack.Team do
   def with_prefs(team) do
     team = Repo.preload(team, :prefs)
 
+    # An empty embed is stored as NULL, so pass `%{}` to materialize the
+    # per-field defaults; otherwise `team.prefs.prefs` is nil for a fresh team.
     case team.prefs do
       nil ->
-        TeamPref.changeset(Ecto.build_assoc(team, :prefs), %{}) |> Repo.insert()
+        TeamPref.changeset(Ecto.build_assoc(team, :prefs), %{prefs: %{}}) |> Repo.insert!()
+        Repo.preload(team, :prefs, force: true)
+
+      %TeamPref{prefs: nil} = team_pref ->
+        TeamPref.changeset(team_pref, %{prefs: %{}}) |> Repo.update!()
         Repo.preload(team, :prefs, force: true)
 
       _ ->
