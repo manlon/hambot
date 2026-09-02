@@ -69,10 +69,18 @@ priv/
 - Schedule rebuilt on application startup
 - Posts to configured channels (via team preferences)
 
-### 5. Team Preferences
+### 5. Tweet Viewer (`lib/hambot/tweet.ex`, `lib/hambot_web/controllers/tweet_controller.ex`)
+- Detects x.com / twitter.com status links in messages
+- Fetches the tweet from FxTwitter's public API (`Hambot.Tweet.FxTwitter` behaviour, mocked in tests)
+- Posts a link to `/t/:token`, a hambot-hosted page that renders the tweet, its media, and its quoted tweet without an X login
+- The token is the status id encrypted with `Phoenix.Token`, so only hambot-minted links resolve
+- The page sends no Referer because video.twimg.com rejects third-party referers
+- Per-team response mode via `tweet_link_mode` (context by default)
+
+### 6. Team Preferences
 - Per-workspace configuration storage
 - Commands: `@hambot team pref list`, `@hambot team pref set <name> <value>`
-- Settings: `archive_link_mode`, `game_chats` (channels for NHL threads)
+- Settings: `archive_link_mode`, `tweet_link_mode`, `game_chats` (channels for NHL threads)
 
 ## Architecture Patterns
 
