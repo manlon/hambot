@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Regenerate the Kraken game schedule CSV from the NHL's public schedule API.
+#
+# Usage: bin/kraken-schedule 20272028
+# Writes priv/datasets/kraken_schedule_2728.csv. Point @nhl_schedule_file in
+# lib/hambot/game_chat/kraken.ex at the new file.
+#
+# Requires curl and jq.
+set -euo pipefail
+
+season=${1:?usage: bin/kraken-schedule <season, e.g. 20272028>}
+if [[ ! $season =~ ^[0-9]{8}$ ]]; then
+  echo "season must look like 20272028" >&2
+  exit 1
+fi
+
+out="$(dirname "$0")/../priv/datasets/kraken_schedule_${season:2:2}${season:6:2}.csv"
+url="https://api-web.nhle.com/v1/club-schedule-season/SEA/$season"
+
+json=$(curl -fsS "$url")
+
+games=$(jq '.games | length' <<<"$json")
+if [[ $games -eq 0 ]]; then
+  echo "no games returned for $season; the schedule may not be published yet" >&2
+  exit 1
+fi
+
+tbd=$(jq '[.games[] | select(.gameScheduleState != "OK")] | length' <<<"$json")
+if [[ $tbd -gt 0 ]]; then
+  echo "warning: $tbd games are not in schedule state OK (postponed or TBD)" >&2
+fi
+
+{
+  echo "summary,start,end,location"
+  # The worker reads start as UTC and posts 15 minutes before it; end is
+  # informational, so a fixed two hours is fine.
+  jq -r '
+    .games
+    | sort_by(.startTimeUTC)[]
+    | (.startTimeUTC | fromdateiso8601) as $t
+    | [
+        "🏒 \(.awayTeam.placeName.default) \(.awayTeam.commonName.default) @ \(.homeTeam.placeName.default) \(.homeTeam.commonName.default)",
+        ($t | strftime("%Y-%m-%d %H:%M:%S")),
+        ($t + 7200 | strftime("%Y-%m-%d %H:%M:%S")),
+        .venue.default
+      ]
+    | join(",")
+  ' <<<"$json"
+} >"$out"
+
+echo "wrote $games games to $out"

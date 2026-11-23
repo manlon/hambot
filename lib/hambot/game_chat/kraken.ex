@@ -3,7 +3,7 @@ defmodule Hambot.GameChat.Kraken do
   use Oban.Worker, queue: :default
   require Ecto.Query
 
-  @nhl_schedule_file "priv/datasets/kraken_schedule_2526.csv"
+  @nhl_schedule_file "priv/datasets/kraken_schedule_2627.csv"
   def nhl_schedule_data do
     fname = Application.app_dir(:hambot, @nhl_schedule_file)
 
