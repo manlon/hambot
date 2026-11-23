@@ -129,6 +129,14 @@ defmodule HambotWeb.ApiController do
     team = Team.find_by_team_id!(team_id)
     urls = Hambot.archive_urls(team, event)
 
+    # A message posted inside a thread carries its parent's thread_ts; without
+    # it, chat.postMessage lands in the channel rather than the thread.
+    where =
+      case event do
+        %{"thread_ts" => thread_ts} -> %{reply: [thread_ts: thread_ts], thread: thread_ts}
+        _ -> %{reply: [], thread: ts}
+      end
+
     for {archive_url, orig_url} <- urls do
       Logger.debug(
         "replying in thread #{channel} #{ts} #{archive_url} #{team.prefs.prefs.archive_link_mode}"
@@ -136,15 +144,18 @@ defmodule HambotWeb.ApiController do
 
       case team.prefs.prefs.archive_link_mode do
         :thread ->
-          send_message(team, channel, archive_url, thread_ts: ts)
+          send_message(team, channel, archive_url, thread_ts: where.thread)
 
         :reply ->
-          send_message(team, channel, archive_url)
+          send_message(team, channel, archive_url, where.reply)
 
         :context ->
-          send_message_blocks(team, channel, [
-            build_archive_link_context_block(archive_url, orig_url)
-          ])
+          send_message_blocks(
+            team,
+            channel,
+            [build_archive_link_context_block(archive_url, orig_url)],
+            where.reply
+          )
 
         _ ->
           nil
@@ -156,14 +167,14 @@ defmodule HambotWeb.ApiController do
         []
       else
         for {status_id, _orig_url} <- Tweet.status_links(Hambot.collect_urls(event)),
-            result = post_tweet_link(team, channel, ts, status_id),
+            result = post_tweet_link(team, channel, where, status_id),
             do: result
       end
 
     cxn_result =
       case Hambot.Puzzle.Connections.score(text) do
         {:ok, score} ->
-          send_message(team, channel, "Your Connections score: #{score}")
+          send_message(team, channel, "Your Connections score: #{score}", where.reply)
 
         _ ->
           nil
@@ -173,7 +184,13 @@ defmodule HambotWeb.ApiController do
       if Enum.any?(@codebros, fn bro -> String.contains?(text, bro) end) do
         message = Regex.replace(@mention_pattern, text, "")
         bro_response = Codebro.send_chat(message)
-        send_message(team, channel, bro_response, username: "codebro", icon_url: @codebro_icon)
+
+        send_message(
+          team,
+          channel,
+          bro_response,
+          [username: "codebro", icon_url: @codebro_icon] ++ where.reply
+        )
       end
 
     nothing? =
@@ -185,22 +202,25 @@ defmodule HambotWeb.ApiController do
 
   # A dead viewer link is worse than none, so the tweet is fetched before
   # anything is posted.
-  defp post_tweet_link(team, channel, ts, status_id) do
+  defp post_tweet_link(team, channel, where, status_id) do
     case Tweet.fetch(status_id) do
       {:ok, status} ->
         viewer_url = TweetLink.viewer_url(status_id)
 
         case team.prefs.prefs.tweet_link_mode do
           :thread ->
-            send_message(team, channel, viewer_url, thread_ts: ts)
+            send_message(team, channel, viewer_url, thread_ts: where.thread)
 
           :reply ->
-            send_message(team, channel, viewer_url)
+            send_message(team, channel, viewer_url, where.reply)
 
           :context ->
-            send_message_blocks(team, channel, [
-              build_tweet_link_context_block(viewer_url, status)
-            ])
+            send_message_blocks(
+              team,
+              channel,
+              [build_tweet_link_context_block(viewer_url, status)],
+              where.reply
+            )
 
           _ ->
             nil

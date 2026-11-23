@@ -102,4 +102,54 @@ defmodule HambotWeb.ApiControllerTest do
       post_event(conn, message_event(team, "x", ["https://x.com/DPD_", "https://example.com"]))
     end
   end
+
+  describe "messages posted in a thread" do
+    test "the tweet context block goes to the same thread", %{conn: conn} do
+      team = team_fixture()
+
+      Hambot.MockFxTwitter
+      |> expect(:fetch, fn "20" -> {:ok, fxtwitter_tweet(:plain)} end)
+
+      Hambot.MockSlackApi
+      |> expect(:send_message_blocks, fn _token, "C123", _blocks, opts ->
+        assert opts[:thread_ts] == "1699999999.000001"
+        {:ok, "1700000000.000200"}
+      end)
+
+      post_event(conn, thread_reply(message_event(team, "x", ["https://x.com/jack/status/20"])))
+    end
+
+    test "thread mode replies in the parent thread", %{conn: conn} do
+      team = Team.with_prefs(team_fixture())
+      :ok = Team.update_pref(team, "tweet_link_mode", "thread")
+
+      Hambot.MockFxTwitter
+      |> expect(:fetch, fn "20" -> {:ok, fxtwitter_tweet(:plain)} end)
+
+      Hambot.MockSlackApi
+      |> expect(:send_message_text, fn _token, "C123", _text, opts ->
+        assert opts[:thread_ts] == "1699999999.000001"
+        {:ok, "1700000000.000200"}
+      end)
+
+      post_event(conn, thread_reply(message_event(team, "x", ["https://x.com/jack/status/20"])))
+    end
+
+    test "the archive context block goes to the same thread", %{conn: conn} do
+      team = team_fixture()
+      {:ok, _} = Hambot.Archive.add_domain(team, "example.com")
+      team = Team.with_prefs(team)
+      :ok = Team.update_pref(team, "archive_link_mode", "context")
+
+      Hambot.MockSlackApi
+      |> expect(:send_message_blocks, fn _token, "C123", _blocks, opts ->
+        assert opts[:thread_ts] == "1699999999.000001"
+        {:ok, "1700000000.000200"}
+      end)
+
+      post_event(conn, thread_reply(message_event(team, "x", ["https://example.com/story"])))
+    end
+  end
+
+  defp thread_reply(event), do: put_in(event, ["event", "thread_ts"], "1699999999.000001")
 end
