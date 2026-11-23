@@ -36,7 +36,7 @@ lib/
     └── router.ex                  # Routes: /api/event, OAuth callback
 
 priv/
-├── datasets/nhl_schedule.csv  # Static NHL schedule data
+├── datasets/kraken_schedule_<season>.csv  # Kraken schedule, one file per season
 └── repo/migrations/           # Database migrations
 ```
 
@@ -64,10 +64,17 @@ priv/
 
 ### 4. NHL Game Chat (`lib/hambot/game_chat/kraken.ex`)
 - Seattle Kraken game notifications (Oban scheduled worker)
-- Queries `priv/datasets/nhl_schedule.csv` using DuckDB
+- Queries the season's `priv/datasets/kraken_schedule_<season>.csv` (named in `@nhl_schedule_file`) using DuckDB
 - Creates threads 15 minutes before game time
-- Schedule rebuilt on application startup
+- Schedule rebuilt on application startup, so a new CSV takes effect only after a restart
 - Posts to configured channels (via team preferences)
+
+**New season:** once the NHL publishes the schedule (usually in early summer), run
+`bin/kraken-schedule 20272028` (needs `curl` and `jq`). It fetches
+`api-web.nhle.com/v1/club-schedule-season/SEA/<season>` and writes
+`priv/datasets/kraken_schedule_2728.csv` with columns `summary,start,end,location`,
+start and end in UTC. Point `@nhl_schedule_file` in `kraken.ex` at the new file,
+then deploy. Re-run mid-season if games are rescheduled.
 
 ### 5. Tweet Viewer (`lib/hambot/tweet.ex`, `lib/hambot_web/controllers/tweet_controller.ex`)
 - Detects x.com / twitter.com status links in messages
